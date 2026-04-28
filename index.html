@@ -1428,6 +1428,7 @@
     let currentWheelItems = categoryItems();
     let rotation = 0;
     let spinning = false;
+    let categoryBag = [];
     let soundOn = true;
     let birthdayUnlocked = false;
     let firstWheelSpin = true;
@@ -1436,7 +1437,7 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v3";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v4";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1445,10 +1446,10 @@
     const landingSound = document.getElementById("landingSound");
     const bgMusic = document.getElementById("bgMusic");
 
-    bgMusic.volume = 0.16;
-    spinSound.volume = 0.78;
-    winSound.volume = 0.78;
-    landingSound.volume = 0.82;
+    bgMusic.volume = 0.18;
+    spinSound.volume = 0.24;
+    winSound.volume = 0.32;
+    landingSound.volume = 0.38;
 
     function freshData() {
       return { Dare: [...dares], Truth: [...truths], Pickup: [...pickups] };
@@ -1552,102 +1553,89 @@
       document.getElementById("mvpName").textContent = value || "?";
     });
 
-    function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === "suspended") {
-        audioCtx.resume().catch(() => {});
-      }
-      return audioCtx;
-    }
-
-    function tone(freq, duration = 0.08, volume = 0.08, type = "sine") {
-      if (!soundOn) return;
+    function safeRestart(audio, volume = null, loop = false) {
+      if (!soundOn || !audio) return;
 
       try {
-        const ctx = getAudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        if (volume !== null) audio.volume = volume;
+        audio.loop = loop;
+        audio.pause();
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch (e) {
+        // Never let audio break the game.
+      }
+    }
 
-        osc.type = type;
-        osc.frequency.value = freq;
-
-        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start();
-        osc.stop(ctx.currentTime + duration + 0.02);
+    function safeStop(audio) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
       } catch (e) {}
     }
 
-    function startSpinTicks() {
-      stopSpinTicks();
-      tone(620, 0.07, 0.07, "square");
-
-      let tick = 0;
-      spinTickTimer = setInterval(() => {
-        tick++;
-        const freq = tick % 2 ? 760 : 540;
-        tone(freq, 0.035, 0.045, "square");
-      }, 115);
+    function startSpinSound() {
+      // Softer spin audio. If the browser blocks/loads late, the game still works.
+      safeRestart(spinSound, 0.24, true);
     }
 
-    function stopSpinTicks() {
-      if (spinTickTimer) {
-        clearInterval(spinTickTimer);
-        spinTickTimer = null;
-      }
+    function stopSpinSound() {
+      safeStop(spinSound);
     }
 
-    function landingEffectSound() {
-      tone(220, 0.08, 0.12, "sawtooth");
-      setTimeout(() => tone(440, 0.10, 0.10, "triangle"), 90);
-      setTimeout(() => tone(880, 0.14, 0.08, "sine"), 180);
+    function playLandingSound() {
+      safeRestart(landingSound, 0.38, false);
     }
 
-    function successEffectSound() {
-      tone(523, 0.10, 0.07, "sine");
-      setTimeout(() => tone(659, 0.10, 0.07, "sine"), 120);
-      setTimeout(() => tone(784, 0.14, 0.08, "sine"), 250);
+    function playWinSound() {
+      safeRestart(winSound, 0.32, false);
     }
 
     function play(audio) {
       if (!soundOn) return;
 
       if (audio === bgMusic) {
+        audio.volume = 0.18;
         audio.play().catch(() => {});
-        return;
-      }
-
-      if (audio === spinSound) {
-        startSpinTicks();
-        return;
-      }
-
-      if (audio === landingSound) {
-        landingEffectSound();
         return;
       }
 
       if (audio === winSound) {
-        successEffectSound();
+        playWinSound();
         return;
       }
 
-      try {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } catch (e) {}
+      if (audio === landingSound) {
+        playLandingSound();
+        return;
+      }
+
+      if (audio === spinSound) {
+        startSpinSound();
+        return;
+      }
+
+      safeRestart(audio, 0.3, false);
     }
 
-    function pickedIndexFor(items) {
+    function refillCategoryBag() {
+      categoryBag = ["Dare", "Truth", "Pickup"];
+
+      // Shuffle the bag.
+      for (let i = categoryBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
+      }
+    }
+
+    function getFairCategory() {
+      if (!categoryBag.length) refillCategoryBag();
+      return categoryBag.pop();
+    }
+
+    function pickedIndexFor(items, forcedIndex = null) {
       const segment = 360 / items.length;
-      const picked = Math.floor(Math.random() * items.length);
+      const picked = forcedIndex !== null ? forcedIndex : Math.floor(Math.random() * items.length);
       const sliceCenter = picked * segment + segment / 2;
       const targetRotation = (360 - sliceCenter) % 360;
       const currentRotation = ((rotation % 360) + 360) % 360;
@@ -1656,28 +1644,27 @@
       return picked;
     }
 
-    function spin(items, callback) {
+    function spin(items, callback, forcedIndex = null) {
       if (spinning) return;
       spinning = true;
       document.getElementById("spinBtn").disabled = true;
-      const index = pickedIndexFor(items);
+      const index = pickedIndexFor(items, forcedIndex);
       canvas.style.transform = `rotate(${rotation}deg)`;
-      play(spinSound);
+
+      startSpinSound();
       startHypeText();
       floatingSpinEmojis();
 
       setTimeout(() => {
         spinning = false;
         document.getElementById("spinBtn").disabled = false;
-        stopHypeText();
-        stopSpinTicks();
-        play(landingSound);
+        stopSpinSound();
+        playLandingSound();
         callback(items[index]);
       }, 6250);
     }
 
     function mainSpin() {
-      if (soundOn) getAudioContext();
       if (mode === "category") chooseCategory();
       else revealPrompt();
     }
@@ -1692,6 +1679,10 @@
       mode = "category";
       currentWheelItems = categoryItems();
       draw(currentWheelItems);
+
+      const fairCategory = getFairCategory();
+      const forcedIndex = currentWheelItems.findIndex(item => item.category === fairCategory);
+
       spin(currentWheelItems, (picked) => {
         currentCategory = picked.category;
         mode = "secret";
@@ -1699,7 +1690,7 @@
         draw(currentWheelItems);
         setStepTwo(currentCategory);
         openPopup("Category Unlocked", `${meta[currentCategory].letter} • ${currentCategory}`, "Spin again to reveal the hidden fate.", false);
-      });
+      }, forcedIndex);
     }
 
     function shouldTriggerWildCard() {
@@ -1945,6 +1936,7 @@
       currentCategory = null;
       currentWheelItems = categoryItems();
       firstWheelSpin = true;
+      categoryBag = [];
 
       updateCounters();
       updateSaveNote();
@@ -1966,11 +1958,13 @@
     function toggleSound() {
       soundOn = !soundOn;
       document.getElementById("soundBtn").textContent = soundOn ? "Music On" : "Music Off";
+
       if (soundOn) {
+        bgMusic.volume = 0.18;
         bgMusic.play().catch(() => {});
       } else {
         bgMusic.pause();
-        stopSpinTicks();
+        stopSpinSound();
       }
     }
 
@@ -2177,7 +2171,6 @@
     }
 
     function startApp() {
-      if (soundOn) getAudioContext();
       document.getElementById("finalCountdownSplash").classList.remove("show");
       document.getElementById("intro").classList.add("hidden");
       celebrate();
