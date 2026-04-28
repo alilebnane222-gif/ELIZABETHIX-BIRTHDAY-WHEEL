@@ -1432,6 +1432,8 @@
     let birthdayUnlocked = false;
     let firstWheelSpin = true;
     let hypeTimer = null;
+    let spinTickTimer = null;
+    let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
     const SAVE_KEY = "elizabethixBirthdayWheelSave_v3";
@@ -1550,10 +1552,97 @@
       document.getElementById("mvpName").textContent = value || "?";
     });
 
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function tone(freq, duration = 0.08, volume = 0.08, type = "sine") {
+      if (!soundOn) return;
+
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.value = freq;
+
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + duration + 0.02);
+      } catch (e) {}
+    }
+
+    function startSpinTicks() {
+      stopSpinTicks();
+      tone(620, 0.07, 0.07, "square");
+
+      let tick = 0;
+      spinTickTimer = setInterval(() => {
+        tick++;
+        const freq = tick % 2 ? 760 : 540;
+        tone(freq, 0.035, 0.045, "square");
+      }, 115);
+    }
+
+    function stopSpinTicks() {
+      if (spinTickTimer) {
+        clearInterval(spinTickTimer);
+        spinTickTimer = null;
+      }
+    }
+
+    function landingEffectSound() {
+      tone(220, 0.08, 0.12, "sawtooth");
+      setTimeout(() => tone(440, 0.10, 0.10, "triangle"), 90);
+      setTimeout(() => tone(880, 0.14, 0.08, "sine"), 180);
+    }
+
+    function successEffectSound() {
+      tone(523, 0.10, 0.07, "sine");
+      setTimeout(() => tone(659, 0.10, 0.07, "sine"), 120);
+      setTimeout(() => tone(784, 0.14, 0.08, "sine"), 250);
+    }
+
     function play(audio) {
       if (!soundOn) return;
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
+
+      if (audio === bgMusic) {
+        audio.play().catch(() => {});
+        return;
+      }
+
+      if (audio === spinSound) {
+        startSpinTicks();
+        return;
+      }
+
+      if (audio === landingSound) {
+        landingEffectSound();
+        return;
+      }
+
+      if (audio === winSound) {
+        successEffectSound();
+        return;
+      }
+
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch (e) {}
     }
 
     function pickedIndexFor(items) {
@@ -1581,12 +1670,14 @@
         spinning = false;
         document.getElementById("spinBtn").disabled = false;
         stopHypeText();
+        stopSpinTicks();
         play(landingSound);
         callback(items[index]);
       }, 6250);
     }
 
     function mainSpin() {
+      if (soundOn) getAudioContext();
       if (mode === "category") chooseCategory();
       else revealPrompt();
     }
@@ -1875,8 +1966,12 @@
     function toggleSound() {
       soundOn = !soundOn;
       document.getElementById("soundBtn").textContent = soundOn ? "Music On" : "Music Off";
-      if (soundOn) bgMusic.play().catch(() => {});
-      else bgMusic.pause();
+      if (soundOn) {
+        bgMusic.play().catch(() => {});
+      } else {
+        bgMusic.pause();
+        stopSpinTicks();
+      }
     }
 
     function celebrate() {
@@ -2082,6 +2177,7 @@
     }
 
     function startApp() {
+      if (soundOn) getAudioContext();
       document.getElementById("finalCountdownSplash").classList.remove("show");
       document.getElementById("intro").classList.add("hidden");
       celebrate();
