@@ -1429,6 +1429,8 @@
     let rotation = 0;
     let spinning = false;
     let categoryBag = [];
+    let lastCategory = null;
+    let sameCategoryStreak = 0;
     let soundOn = true;
     let birthdayUnlocked = false;
     let firstWheelSpin = true;
@@ -1437,7 +1439,7 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v4";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v5";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1455,12 +1457,18 @@
       return { Dare: [...dares], Truth: [...truths], Pickup: [...pickups] };
     }
 
+    function getAvailableCategories() {
+      return ["Dare", "Truth", "Pickup"].filter(category => data[category] && data[category].length > 0);
+    }
+
     function categoryItems() {
+      const available = getAvailableCategories();
+
       return [
         { category: "Dare", main: "DARE", icon: "🔥" },
         { category: "Truth", main: "TRUTH", icon: "?" },
         { category: "Pickup", main: "PICK-UP\nLINES", icon: "♡" }
-      ];
+      ].filter(item => available.includes(item.category));
     }
 
     function secretItems(category) {
@@ -1618,19 +1626,44 @@
       safeRestart(audio, 0.3, false);
     }
 
-    function refillCategoryBag() {
-      categoryBag = ["Dare", "Truth", "Pickup"];
-
-      // Shuffle the bag.
-      for (let i = categoryBag.length - 1; i > 0; i--) {
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function refillCategoryBag() {
+      categoryBag = shuffleArray(getAvailableCategories());
+    }
+
+    function rememberCategory(category) {
+      if (category === lastCategory) {
+        sameCategoryStreak++;
+      } else {
+        lastCategory = category;
+        sameCategoryStreak = 1;
       }
     }
 
     function getFairCategory() {
-      if (!categoryBag.length) refillCategoryBag();
-      return categoryBag.pop();
+      const available = getAvailableCategories();
+
+      if (!available.length) return null;
+
+      // If there is more than one category still available, never allow 3 of the same category in a row.
+      let allowed = available;
+      if (available.length > 1 && lastCategory && sameCategoryStreak >= 2) {
+        allowed = available.filter(category => category !== lastCategory);
+      }
+
+      categoryBag = categoryBag.filter(category => allowed.includes(category));
+      if (!categoryBag.length) categoryBag = shuffleArray([...allowed]);
+
+      const category = categoryBag.pop();
+      rememberCategory(category);
+      return category;
     }
 
     function pickedIndexFor(items, forcedIndex = null) {
@@ -1676,15 +1709,33 @@
         return;
       }
 
+      const fairCategory = getFairCategory();
+
+      if (!fairCategory) {
+        openPopup("Game Complete", "All prompts are finished", "No prompts are left. Press Reset Save to play again from the beginning.", true);
+        return;
+      }
+
       mode = "category";
       currentWheelItems = categoryItems();
       draw(currentWheelItems);
 
-      const fairCategory = getFairCategory();
       const forcedIndex = currentWheelItems.findIndex(item => item.category === fairCategory);
 
       spin(currentWheelItems, (picked) => {
         currentCategory = picked.category;
+
+        // Safety check: this category should never be empty now, but this protects old saved games too.
+        if (!data[currentCategory] || data[currentCategory].length === 0) {
+          mode = "category";
+          currentCategory = null;
+          currentWheelItems = categoryItems();
+          draw(currentWheelItems);
+          setStepOne();
+          openPopup("Category Empty", playerName(), "That category is already finished, so it was removed from the wheel. Spin again.", true);
+          return;
+        }
+
         mode = "secret";
         currentWheelItems = secretItems(currentCategory);
         draw(currentWheelItems);
@@ -1883,6 +1934,8 @@
         Dare: data.Dare,
         Truth: data.Truth,
         Pickup: data.Pickup,
+        lastCategory,
+        sameCategoryStreak,
         savedAt: new Date().toISOString()
       };
 
@@ -1911,6 +1964,9 @@
             Truth: saved.Truth,
             Pickup: saved.Pickup
           };
+
+          lastCategory = typeof saved.lastCategory === "string" ? saved.lastCategory : null;
+          sameCategoryStreak = Number.isInteger(saved.sameCategoryStreak) ? saved.sameCategoryStreak : 0;
         }
       } catch (e) {
         console.warn("Could not load saved game progress:", e);
@@ -1937,6 +1993,8 @@
       currentWheelItems = categoryItems();
       firstWheelSpin = true;
       categoryBag = [];
+      lastCategory = null;
+      sameCategoryStreak = 0;
 
       updateCounters();
       updateSaveNote();
@@ -2184,6 +2242,7 @@
     createBirthdayRain();
     createSparkles();
     loadGame();
+    currentWheelItems = categoryItems();
     updateCounters();
     draw(currentWheelItems);
     updateCountdown();
