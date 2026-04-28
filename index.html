@@ -1249,7 +1249,7 @@
           <input class="name-input" id="player" placeholder="Today’s MVP name" autocomplete="off" />
           <button id="spinBtn" onclick="mainSpin()">Spin The Wheel 🎂</button>
           <div class="bottom-actions">
-            <button class="mini-btn" onclick="toggleSound()" id="soundBtn">Music On</button>
+            <button class="mini-btn" onclick="toggleSound()" id="soundBtn">Music 🎵</button>
             <button class="mini-btn" onclick="showFinalMessage()">Final 💜</button>
             <button class="mini-btn" onclick="resetSavedGame()">Reset Save</button>
           </div>
@@ -1430,6 +1430,7 @@
     let spinning = false;
     let categoryBag = [];
     let soundOn = true;
+    let musicOn = false;
     let birthdayUnlocked = false;
     let firstWheelSpin = true;
     let hypeTimer = null;
@@ -1437,7 +1438,7 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v4";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v5";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1676,6 +1677,18 @@
         return;
       }
 
+      // Hidden Wild Card check happens BEFORE Truth / Dare / Pick-up is chosen.
+      // This feels cleaner because Wild Card is now its own surprise moment.
+      if (shouldTriggerWildCard()) {
+        triggerWildCard("Surprise");
+        mode = "category";
+        currentCategory = null;
+        currentWheelItems = categoryItems();
+        draw(currentWheelItems);
+        setStepOne();
+        return;
+      }
+
       mode = "category";
       currentWheelItems = categoryItems();
       draw(currentWheelItems);
@@ -1693,83 +1706,6 @@
       }, forcedIndex);
     }
 
-    function shouldTriggerWildCard() {
-      // Strict wild card rules:
-      // 1) no back-to-back wild cards
-      // 2) after a wild card, the next 2 reveal spins cannot be wild
-      if (lastResultWasWild) return false;
-      if (wildCooldown > 0) {
-        wildCooldown--;
-        return false;
-      }
-      return Math.random() < WILD_CARD_CHANCE;
-    }
-
-    function getWildCard() {
-      return wildcards[Math.floor(Math.random() * wildcards.length)];
-    }
-
-    function pullRandomPromptFromCategory(category) {
-      const arr = data[category];
-
-      if (!arr || !arr.length) {
-        return null;
-      }
-
-      const itemIndex = Math.floor(Math.random() * arr.length);
-      const text = arr.splice(itemIndex, 1)[0];
-
-      updateCounters();
-      saveGame();
-
-      return text;
-    }
-
-    function triggerWildCard(category) {
-      lastResultWasWild = true;
-      wildCooldown = 2;
-
-      const wildText = getWildCard();
-
-      let finalText = wildText;
-      let forcedType = null;
-
-      if (wildText.includes("FORCE_DARE")) {
-        forcedType = "Dare";
-        const forcedPrompt = pullRandomPromptFromCategory("Dare");
-        finalText = forcedPrompt
-          ? `🎁 WILD CARD: FORCE DARE 🔥\n\n${forcedPrompt}`
-          : "🎁 WILD CARD: FORCE DARE 🔥\n\nNo dares left, so spin again.";
-      }
-
-      if (wildText.includes("FORCE_TRUTH")) {
-        forcedType = "Truth";
-        const forcedPrompt = pullRandomPromptFromCategory("Truth");
-        finalText = forcedPrompt
-          ? `🎁 WILD CARD: FORCE TRUTH 👀\n\n${forcedPrompt}`
-          : "🎁 WILD CARD: FORCE TRUTH 👀\n\nNo truths left, so spin again.";
-      }
-
-      const displayType = forcedType || category;
-
-      setResult(displayType, finalText);
-
-      if (typeof flashScreen === "function") flashScreen();
-      categoryGlow(forcedType || "Pickup");
-      crownDrop();
-      emojiBurst(forcedType || "Pickup");
-      celebrate();
-
-      const popup = document.getElementById("popup");
-      popup.classList.add("wild-card-mode");
-      document.body.classList.add("wild-shake");
-      setTimeout(() => document.body.classList.remove("wild-shake"), 500);
-
-      openPopup("🎁 WILD CARD", `${playerName()} unlocked a surprise:`, finalText, true);
-
-      if (!forcedType && typeof saveGame === "function") saveGame();
-    }
-
     function revealPrompt() {
       if (!currentCategory) return;
 
@@ -1783,22 +1719,17 @@
       draw(currentWheelItems);
 
       spin(currentWheelItems, () => {
+        lastResultWasWild = false;
+
         const landedCategory = currentCategory;
+        const itemIndex = Math.floor(Math.random() * arr.length);
+        const text = arr.splice(itemIndex, 1)[0];
 
-        if (shouldTriggerWildCard()) {
-          triggerWildCard(landedCategory);
-        } else {
-          lastResultWasWild = false;
-
-          const itemIndex = Math.floor(Math.random() * arr.length);
-          const text = arr.splice(itemIndex, 1)[0];
-
-          setResult(landedCategory, text);
-          updateCounters();
-          saveGame();
-          celebrate();
-          openPopup(landedCategory, `${playerName()} got:`, text, true);
-        }
+        setResult(landedCategory, text);
+        updateCounters();
+        saveGame();
+        celebrate();
+        openPopup(landedCategory, `${playerName()} got:`, text, true);
 
         mode = "category";
         currentCategory = null;
@@ -1956,15 +1887,19 @@
     }
 
     function toggleSound() {
-      soundOn = !soundOn;
-      document.getElementById("soundBtn").textContent = soundOn ? "Music On" : "Music Off";
-
-      if (soundOn) {
-        bgMusic.volume = 0.18;
+      // This button controls background music only.
+      // Sound effects stay active because they are important for the wheel.
+      if (bgMusic.paused) {
+        soundOn = true;
+        musicOn = true;
+        bgMusic.volume = 0.22;
+        bgMusic.loop = true;
         bgMusic.play().catch(() => {});
+        document.getElementById("soundBtn").textContent = "Music On";
       } else {
+        musicOn = false;
         bgMusic.pause();
-        stopSpinSound();
+        document.getElementById("soundBtn").textContent = "Music Off";
       }
     }
 
@@ -2175,10 +2110,15 @@
       document.getElementById("intro").classList.add("hidden");
       celebrate();
       play(winSound);
-      if (soundOn) {
-        bgMusic.volume = 0.22;
-        bgMusic.play().catch(() => {});
-      }
+
+      // User clicked Enter/Start, so browser allows music here.
+      soundOn = true;
+      musicOn = true;
+      bgMusic.volume = 0.22;
+      bgMusic.loop = true;
+      bgMusic.play().catch(() => {});
+      document.getElementById("soundBtn").textContent = "Music On";
+    }
     }
 
     createBirthdayRain();
