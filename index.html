@@ -1249,7 +1249,7 @@
           <input class="name-input" id="player" placeholder="Today’s MVP name" autocomplete="off" />
           <button id="spinBtn" onclick="mainSpin()">Spin The Wheel 🎂</button>
           <div class="bottom-actions">
-            <button class="mini-btn" onclick="toggleSound()" id="soundBtn">Music 🎵</button>
+            <button class="mini-btn" onclick="toggleSound()" id="soundBtn">No Music</button>
             <button class="mini-btn" onclick="showFinalMessage()">Final 💜</button>
             <button class="mini-btn" onclick="resetSavedGame()">Reset Save</button>
           </div>
@@ -1286,11 +1286,6 @@
       <button onclick="closePopup()">Continue</button>
     </div>
   </div>
-
-  <audio id="spinSound" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" preload="auto"></audio>
-  <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/1998/1998-preview.mp3" preload="auto"></audio>
-  <audio id="landingSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-  <audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-games-worldbeat-466.mp3" preload="auto" loop></audio>
 
   <script>
     const truths = [
@@ -1438,30 +1433,35 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v5";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v6";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
-    const spinSound = document.getElementById("spinSound");
-    const winSound = document.getElementById("winSound");
-    const landingSound = document.getElementById("landingSound");
-    const bgMusic = document.getElementById("bgMusic");
-
-    bgMusic.volume = 0.18;
-    spinSound.volume = 0.24;
-    winSound.volume = 0.32;
-    landingSound.volume = 0.38;
+    const spinSound = null;
+    const winSound = null;
+    const landingSound = null;
+    const bgMusic = null;
 
     function freshData() {
       return { Dare: [...dares], Truth: [...truths], Pickup: [...pickups] };
     }
 
     function categoryItems() {
-      return [
-        { category: "Dare", main: "DARE", icon: "🔥" },
-        { category: "Truth", main: "TRUTH", icon: "?" },
-        { category: "Pickup", main: "PICK-UP\nLINES", icon: "♡" }
-      ];
+      const items = [];
+
+      if (data.Dare.length > 0) {
+        items.push({ category: "Dare", main: "DARE", icon: "🔥" });
+      }
+
+      if (data.Truth.length > 0) {
+        items.push({ category: "Truth", main: "TRUTH", icon: "?" });
+      }
+
+      if (data.Pickup.length > 0) {
+        items.push({ category: "Pickup", main: "PICK-UP\nLINES", icon: "♡" });
+      }
+
+      return items;
     }
 
     function secretItems(category) {
@@ -1552,77 +1552,29 @@
     document.getElementById("player").addEventListener("input", () => {
       const value = document.getElementById("player").value.trim();
       document.getElementById("mvpName").textContent = value || "?";
-    });
-
-    function safeRestart(audio, volume = null, loop = false) {
-      if (!soundOn || !audio) return;
-
-      try {
-        if (volume !== null) audio.volume = volume;
-        audio.loop = loop;
-        audio.pause();
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } catch (e) {
+    }); catch (e) {
         // Never let audio break the game.
       }
+    } catch (e) {}
     }
 
-    function safeStop(audio) {
-      try {
-        audio.pause();
-        audio.currentTime = 0;
-      } catch (e) {}
-    }
-
-    function startSpinSound() {
-      // Softer spin audio. If the browser blocks/loads late, the game still works.
-      safeRestart(spinSound, 0.24, true);
-    }
-
-    function stopSpinSound() {
-      safeStop(spinSound);
-    }
-
-    function playLandingSound() {
-      safeRestart(landingSound, 0.38, false);
-    }
-
-    function playWinSound() {
-      safeRestart(winSound, 0.32, false);
-    }
+    function startSpinSound() {}
+    function stopSpinSound() {}
+    function playLandingSound() {}
+    function playWinSound() {}
 
     function play(audio) {
-      if (!soundOn) return;
-
-      if (audio === bgMusic) {
-        audio.volume = 0.18;
-        audio.play().catch(() => {});
-        return;
-      }
-
-      if (audio === winSound) {
-        playWinSound();
-        return;
-      }
-
-      if (audio === landingSound) {
-        playLandingSound();
-        return;
-      }
-
-      if (audio === spinSound) {
-        startSpinSound();
-        return;
-      }
-
-      safeRestart(audio, 0.3, false);
+      return;
     }
 
     function refillCategoryBag() {
-      categoryBag = ["Dare", "Truth", "Pickup"];
+      categoryBag = [];
 
-      // Shuffle the bag.
+      if (data.Dare.length > 0) categoryBag.push("Dare");
+      if (data.Truth.length > 0) categoryBag.push("Truth");
+      if (data.Pickup.length > 0) categoryBag.push("Pickup");
+
+      // Shuffle the remaining categories.
       for (let i = categoryBag.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
@@ -1630,7 +1582,13 @@
     }
 
     function getFairCategory() {
+      // Remove categories from the bag if they became empty after previous prompts.
+      categoryBag = categoryBag.filter(category => data[category] && data[category].length > 0);
+
       if (!categoryBag.length) refillCategoryBag();
+
+      if (!categoryBag.length) return null;
+
       return categoryBag.pop();
     }
 
@@ -1678,7 +1636,6 @@
       }
 
       // Hidden Wild Card check happens BEFORE Truth / Dare / Pick-up is chosen.
-      // This feels cleaner because Wild Card is now its own surprise moment.
       if (shouldTriggerWildCard()) {
         triggerWildCard("Surprise");
         mode = "category";
@@ -1691,9 +1648,20 @@
 
       mode = "category";
       currentWheelItems = categoryItems();
+
+      if (!currentWheelItems.length) {
+        openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Use Reset Save only if you want to restart from the beginning.", true);
+        return;
+      }
+
       draw(currentWheelItems);
 
       const fairCategory = getFairCategory();
+      if (!fairCategory) {
+        openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Use Reset Save only if you want to restart from the beginning.", true);
+        return;
+      }
+
       const forcedIndex = currentWheelItems.findIndex(item => item.category === fairCategory);
 
       spin(currentWheelItems, (picked) => {
@@ -1736,8 +1704,13 @@
         currentWheelItems = categoryItems();
 
         setTimeout(() => {
-          draw(currentWheelItems);
-          setStepOne();
+          if (currentWheelItems.length) {
+            draw(currentWheelItems);
+            setStepOne();
+          } else {
+            setStepOne();
+            openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Amazing stream moment.", true);
+          }
         }, 500);
       });
     }
@@ -1889,20 +1862,7 @@
     }
 
     function toggleSound() {
-      // This button controls background music only.
-      // Sound effects stay active because they are important for the wheel.
-      if (bgMusic.paused) {
-        soundOn = true;
-        musicOn = true;
-        bgMusic.volume = 0.22;
-        bgMusic.loop = true;
-        bgMusic.play().catch(() => {});
-        document.getElementById("soundBtn").textContent = "Music On";
-      } else {
-        musicOn = false;
-        bgMusic.pause();
-        document.getElementById("soundBtn").textContent = "Music Off";
-      }
+      alert("Music is disabled for stability tonight.");
     }
 
     function celebrate() {
@@ -2028,11 +1988,12 @@
     }
 
     function getKyivNow() {
-      return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Kyiv" }));
+      return new Date();
     }
 
     function getKyivTarget() {
-      return new Date(FIXED_BIRTHDAY_DATE_KYIV + "T00:00:00");
+      // April 29, 2026 at 00:00 Kyiv time = April 28, 2026 21:00 UTC
+      return new Date("2026-04-28T21:00:00Z");
     }
 
     function pad(num) {
@@ -2040,12 +2001,10 @@
     }
 
     function updateCountdown() {
-      const now = getKyivNow();
+      const now = new Date();
       const target = getKyivTarget();
       const diff = target - now;
 
-      // If the birthday time has not arrived yet, countdown must always keep running.
-      // This prevents Reset Save or old state from freezing the timer.
       if (diff > 0) {
         birthdayUnlocked = false;
 
@@ -2067,23 +2026,17 @@
         const splash = document.getElementById("finalCountdownSplash");
         const finalNumber = document.getElementById("finalCountdownNumber");
 
-        if (days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
+        if (splash && finalNumber && days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
           splash.classList.add("show");
           finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
-          document.getElementById("introTagline").textContent = "Birthday starts in...";
-        } else {
+        } else if (splash) {
           splash.classList.remove("show");
-          const tag = document.getElementById("introTagline");
-          if (tag && tag.textContent !== "Birthday Countdown") tag.textContent = "Birthday Countdown";
         }
 
         return;
       }
 
-      // Birthday time arrived.
-      if (!birthdayUnlocked) {
-        unlockBirthdayScreen();
-      }
+      if (!birthdayUnlocked) unlockBirthdayScreen();
     }
 
     function unlockBirthdayScreen() {
@@ -2106,7 +2059,6 @@
         crownDrop();
         play(winSound);
         if (soundOn) {
-          bgMusic.volume = 0.24;
           bgMusic.play().catch(() => {});
         }
       }, 1050);
@@ -2121,32 +2073,29 @@
     }
 
     function startApp() {
-      document.getElementById("finalCountdownSplash").classList.remove("show");
-      document.getElementById("intro").classList.add("hidden");
+      const splash = document.getElementById("finalCountdownSplash");
+      const intro = document.getElementById("intro");
+      if (splash) splash.classList.remove("show");
+      if (intro) intro.classList.add("hidden");
       celebrate();
-      play(winSound);
-
-      // User clicked Enter/Start, so browser allows music here.
-      soundOn = true;
-      musicOn = true;
-      bgMusic.volume = 0.22;
-      bgMusic.loop = true;
-      bgMusic.play().catch(() => {});
-      document.getElementById("soundBtn").textContent = "Music On";
     }
     }
 
     function initApp() {
       if (typeof createBirthdayRain === "function") createBirthdayRain();
-      createSparkles();
-      loadGame();
-      updateCounters();
-      draw(currentWheelItems);
+      if (typeof createSparkles === "function") createSparkles();
+      if (typeof loadGame === "function") loadGame();
+      if (typeof updateCounters === "function") updateCounters();
+      if (typeof draw === "function") draw(currentWheelItems);
       updateCountdown();
       setInterval(updateCountdown, 1000);
     }
 
-    initApp();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initApp);
+    } else {
+      initApp();
+    }
   </script>
 </body>
 </html>
