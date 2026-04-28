@@ -604,6 +604,7 @@
       padding: 22px;
       display: grid;
       place-items: center;
+      overflow: hidden;
       background:
         radial-gradient(circle at 50% 50%, rgba(255, 243, 255, .18), transparent 38%),
         radial-gradient(circle at 50% 50%, rgba(255, 66, 214, .16), transparent 55%),
@@ -948,42 +949,6 @@
     /* 🎂 BIRTHDAY MODE VISUAL UPGRADE */
     /* =============================== */
 
-    .birthday-mode-layer {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .birthday-mode-layer::before {
-      content: "";
-      position: absolute;
-      inset: -12%;
-      background:
-        radial-gradient(circle at 18% 22%, rgba(255, 216, 106, .26), transparent 18%),
-        radial-gradient(circle at 82% 20%, rgba(255, 125, 224, .30), transparent 20%),
-        radial-gradient(circle at 50% 72%, rgba(255, 183, 216, .22), transparent 30%),
-        radial-gradient(circle at 50% 42%, rgba(255, 66, 214, .16), transparent 36%);
-      filter: blur(18px);
-      animation: birthdayGlowMove 10s ease-in-out infinite alternate;
-    }
-
-    .birthday-mode-layer::after {
-      content: "🎂  🎉  🎈  ✨  💜  👑  🎁";
-      position: absolute;
-      left: -10%;
-      right: -10%;
-      top: 8%;
-      font-size: clamp(22px, 3vw, 42px);
-      letter-spacing: clamp(16px, 5vw, 80px);
-      white-space: nowrap;
-      opacity: .14;
-      text-align: center;
-      filter: drop-shadow(0 0 12px rgba(255, 140, 230, .85));
-      animation: birthdayEmojiDrift 18s linear infinite;
-    }
-
     .birthday-rain {
       position: fixed;
       inset: 0;
@@ -1020,42 +985,6 @@
       right: 1.5vw;
       bottom: 4vh;
       animation-delay: -1.8s;
-    }
-
-    .birthday-orbit {
-      position: fixed;
-      z-index: 1;
-      pointer-events: none;
-      border-radius: 999px;
-      opacity: .34;
-      filter: blur(.4px) drop-shadow(0 0 30px rgba(255, 216, 106, .62));
-      animation: birthdayOrbitFloat 7s ease-in-out infinite;
-    }
-
-    .birthday-orbit.one {
-      width: 170px;
-      height: 170px;
-      left: 8vw;
-      top: 28vh;
-      background: radial-gradient(circle, rgba(255, 216, 106, .62), rgba(255, 66, 214, .12), transparent 68%);
-    }
-
-    .birthday-orbit.two {
-      width: 230px;
-      height: 230px;
-      right: 7vw;
-      top: 33vh;
-      background: radial-gradient(circle, rgba(255, 143, 224, .55), rgba(255, 216, 106, .10), transparent 68%);
-      animation-delay: -2.6s;
-    }
-
-    .birthday-orbit.three {
-      width: 130px;
-      height: 130px;
-      left: 20vw;
-      bottom: 14vh;
-      background: radial-gradient(circle, rgba(176, 144, 255, .52), rgba(255, 66, 214, .12), transparent 70%);
-      animation-delay: -4.7s;
     }
 
     .top-title::after {
@@ -1132,16 +1061,6 @@
       z-index: 1;
     }
 
-    @keyframes birthdayGlowMove {
-      from { transform: translate(-18px, -8px) scale(1); }
-      to { transform: translate(22px, 18px) scale(1.08); }
-    }
-
-    @keyframes birthdayEmojiDrift {
-      from { transform: translateX(-8%); }
-      to { transform: translateX(8%); }
-    }
-
     @keyframes birthdayRainFall {
       from { transform: translateY(-12vh) rotate(0deg); opacity: 0; }
       15% { opacity: .45; }
@@ -1151,11 +1070,6 @@
     @keyframes birthdayCornerFloat {
       0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
       50% { transform: translateY(-20px) rotate(4deg) scale(1.04); }
-    }
-
-    @keyframes birthdayOrbitFloat {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-34px) scale(1.08); }
     }
 
     @keyframes birthdayButtonPulse {
@@ -1175,9 +1089,6 @@
 
     @media (max-width: 900px) {
       .birthday-big-corner,
-      .birthday-orbit {
-        opacity: .18;
-      }
 
       .birthday-rain span {
         opacity: .26;
@@ -1187,6 +1098,44 @@
         font-size: 11px;
         top: 8px;
       }
+    }
+
+
+    /* FINAL FIX: remove weird curved overlay line near the wheel */
+    .birthday-mode-layer,
+    .birthday-mode-layer::before,
+    .birthday-mode-layer::after,
+    .birthday-orbit,
+    .birthday-orbit::before,
+    .birthday-orbit::after {
+      display: none !important;
+      content: none !important;
+      opacity: 0 !important;
+    }
+
+    .wheel-panel {
+      isolation: isolate;
+      overflow: hidden !important;
+    }
+
+    .wheel-wrap {
+      z-index: 5;
+    }
+
+    canvas {
+      position: relative;
+      z-index: 6;
+    }
+
+
+    .wheel-panel::after,
+    .wheel-panel > *::before {
+      pointer-events: none;
+    }
+
+    .wheel-panel.panel::before {
+      display: none !important;
+      content: none !important;
     }
 
     .hidden { display: none !important; }
@@ -1203,10 +1152,6 @@
 
 <body>
   <div class="birthday-bg"></div>
-  <div class="birthday-mode-layer"></div>
-  <div class="birthday-orbit one"></div>
-  <div class="birthday-orbit two"></div>
-  <div class="birthday-orbit three"></div>
   <div class="birthday-big-corner left">🎂</div>
   <div class="birthday-big-corner right">🎁</div>
   <div class="birthday-rain" id="birthdayRain"></div>
@@ -1454,16 +1399,16 @@
       "🎁 WILD CARD: Double Spin — Spin again 😈",
       "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
       "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: Force Dare — Skip the category… Elizabethix must do a DARE 🔥",
-      "🎁 WILD CARD: Force Truth — Skip the category… Elizabethix must answer a TRUTH 👀",
+      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
+      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
       "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈",
       "🎁 WILD CARD: Reverse Question — Elizabethix asks the MVP anything 👀",
       "🎁 WILD CARD: Reverse Dare — Elizabethix gives the MVP a dare 😈",
       "🎁 WILD CARD: Double Spin — Spin again 😈",
       "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
       "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: Force Dare — Skip the category… Elizabethix must do a DARE 🔥",
-      "🎁 WILD CARD: Force Truth — Skip the category… Elizabethix must answer a TRUTH 👀",
+      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
+      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
       "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈"
 ];
 
@@ -1483,13 +1428,16 @@
     let currentWheelItems = categoryItems();
     let rotation = 0;
     let spinning = false;
+    let categoryBag = [];
     let soundOn = true;
     let birthdayUnlocked = false;
     let firstWheelSpin = true;
     let hypeTimer = null;
+    let spinTickTimer = null;
+    let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v3";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v4";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1498,10 +1446,10 @@
     const landingSound = document.getElementById("landingSound");
     const bgMusic = document.getElementById("bgMusic");
 
-    bgMusic.volume = 0.16;
-    spinSound.volume = 0.78;
-    winSound.volume = 0.78;
-    landingSound.volume = 0.82;
+    bgMusic.volume = 0.18;
+    spinSound.volume = 0.24;
+    winSound.volume = 0.32;
+    landingSound.volume = 0.38;
 
     function freshData() {
       return { Dare: [...dares], Truth: [...truths], Pickup: [...pickups] };
@@ -1605,15 +1553,89 @@
       document.getElementById("mvpName").textContent = value || "?";
     });
 
-    function play(audio) {
-      if (!soundOn) return;
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
+    function safeRestart(audio, volume = null, loop = false) {
+      if (!soundOn || !audio) return;
+
+      try {
+        if (volume !== null) audio.volume = volume;
+        audio.loop = loop;
+        audio.pause();
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch (e) {
+        // Never let audio break the game.
+      }
     }
 
-    function pickedIndexFor(items) {
+    function safeStop(audio) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    }
+
+    function startSpinSound() {
+      // Softer spin audio. If the browser blocks/loads late, the game still works.
+      safeRestart(spinSound, 0.24, true);
+    }
+
+    function stopSpinSound() {
+      safeStop(spinSound);
+    }
+
+    function playLandingSound() {
+      safeRestart(landingSound, 0.38, false);
+    }
+
+    function playWinSound() {
+      safeRestart(winSound, 0.32, false);
+    }
+
+    function play(audio) {
+      if (!soundOn) return;
+
+      if (audio === bgMusic) {
+        audio.volume = 0.18;
+        audio.play().catch(() => {});
+        return;
+      }
+
+      if (audio === winSound) {
+        playWinSound();
+        return;
+      }
+
+      if (audio === landingSound) {
+        playLandingSound();
+        return;
+      }
+
+      if (audio === spinSound) {
+        startSpinSound();
+        return;
+      }
+
+      safeRestart(audio, 0.3, false);
+    }
+
+    function refillCategoryBag() {
+      categoryBag = ["Dare", "Truth", "Pickup"];
+
+      // Shuffle the bag.
+      for (let i = categoryBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
+      }
+    }
+
+    function getFairCategory() {
+      if (!categoryBag.length) refillCategoryBag();
+      return categoryBag.pop();
+    }
+
+    function pickedIndexFor(items, forcedIndex = null) {
       const segment = 360 / items.length;
-      const picked = Math.floor(Math.random() * items.length);
+      const picked = forcedIndex !== null ? forcedIndex : Math.floor(Math.random() * items.length);
       const sliceCenter = picked * segment + segment / 2;
       const targetRotation = (360 - sliceCenter) % 360;
       const currentRotation = ((rotation % 360) + 360) % 360;
@@ -1622,21 +1644,22 @@
       return picked;
     }
 
-    function spin(items, callback) {
+    function spin(items, callback, forcedIndex = null) {
       if (spinning) return;
       spinning = true;
       document.getElementById("spinBtn").disabled = true;
-      const index = pickedIndexFor(items);
+      const index = pickedIndexFor(items, forcedIndex);
       canvas.style.transform = `rotate(${rotation}deg)`;
-      play(spinSound);
+
+      startSpinSound();
       startHypeText();
       floatingSpinEmojis();
 
       setTimeout(() => {
         spinning = false;
         document.getElementById("spinBtn").disabled = false;
-        stopHypeText();
-        play(landingSound);
+        stopSpinSound();
+        playLandingSound();
         callback(items[index]);
       }, 6250);
     }
@@ -1656,6 +1679,10 @@
       mode = "category";
       currentWheelItems = categoryItems();
       draw(currentWheelItems);
+
+      const fairCategory = getFairCategory();
+      const forcedIndex = currentWheelItems.findIndex(item => item.category === fairCategory);
+
       spin(currentWheelItems, (picked) => {
         currentCategory = picked.category;
         mode = "secret";
@@ -1663,7 +1690,7 @@
         draw(currentWheelItems);
         setStepTwo(currentCategory);
         openPopup("Category Unlocked", `${meta[currentCategory].letter} • ${currentCategory}`, "Spin again to reveal the hidden fate.", false);
-      });
+      }, forcedIndex);
     }
 
     function shouldTriggerWildCard() {
@@ -1682,17 +1709,55 @@
       return wildcards[Math.floor(Math.random() * wildcards.length)];
     }
 
+    function pullRandomPromptFromCategory(category) {
+      const arr = data[category];
+
+      if (!arr || !arr.length) {
+        return null;
+      }
+
+      const itemIndex = Math.floor(Math.random() * arr.length);
+      const text = arr.splice(itemIndex, 1)[0];
+
+      updateCounters();
+      saveGame();
+
+      return text;
+    }
+
     function triggerWildCard(category) {
       lastResultWasWild = true;
       wildCooldown = 2;
 
       const wildText = getWildCard();
-      setResult(category, wildText);
+
+      let finalText = wildText;
+      let forcedType = null;
+
+      if (wildText.includes("FORCE_DARE")) {
+        forcedType = "Dare";
+        const forcedPrompt = pullRandomPromptFromCategory("Dare");
+        finalText = forcedPrompt
+          ? `🎁 WILD CARD: FORCE DARE 🔥\n\n${forcedPrompt}`
+          : "🎁 WILD CARD: FORCE DARE 🔥\n\nNo dares left, so spin again.";
+      }
+
+      if (wildText.includes("FORCE_TRUTH")) {
+        forcedType = "Truth";
+        const forcedPrompt = pullRandomPromptFromCategory("Truth");
+        finalText = forcedPrompt
+          ? `🎁 WILD CARD: FORCE TRUTH 👀\n\n${forcedPrompt}`
+          : "🎁 WILD CARD: FORCE TRUTH 👀\n\nNo truths left, so spin again.";
+      }
+
+      const displayType = forcedType || category;
+
+      setResult(displayType, finalText);
 
       if (typeof flashScreen === "function") flashScreen();
-      categoryGlow("Pickup");
+      categoryGlow(forcedType || "Pickup");
       crownDrop();
-      emojiBurst("Pickup");
+      emojiBurst(forcedType || "Pickup");
       celebrate();
 
       const popup = document.getElementById("popup");
@@ -1700,12 +1765,10 @@
       document.body.classList.add("wild-shake");
       setTimeout(() => document.body.classList.remove("wild-shake"), 500);
 
-      openPopup("🎁 WILD CARD", `${playerName()} unlocked a surprise:`, wildText, true);
+      openPopup("🎁 WILD CARD", `${playerName()} unlocked a surprise:`, finalText, true);
 
-      // Wild card does not remove a normal prompt from the list.
-      if (typeof saveGame === "function") saveGame();
+      if (!forcedType && typeof saveGame === "function") saveGame();
     }
-
 
     function revealPrompt() {
       if (!currentCategory) return;
@@ -1873,6 +1936,7 @@
       currentCategory = null;
       currentWheelItems = categoryItems();
       firstWheelSpin = true;
+      categoryBag = [];
 
       updateCounters();
       updateSaveNote();
@@ -1894,8 +1958,14 @@
     function toggleSound() {
       soundOn = !soundOn;
       document.getElementById("soundBtn").textContent = soundOn ? "Music On" : "Music Off";
-      if (soundOn) bgMusic.play().catch(() => {});
-      else bgMusic.pause();
+
+      if (soundOn) {
+        bgMusic.volume = 0.18;
+        bgMusic.play().catch(() => {});
+      } else {
+        bgMusic.pause();
+        stopSpinSound();
+      }
     }
 
     function celebrate() {
