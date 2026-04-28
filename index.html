@@ -1,1279 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elizabethix Birthday Wheel</title>
-
-  <style>
-    :root {
-      --pink: #ff42d6;
-      --pink2: #ff8bea;
-      --purple: #9b5cff;
-      --blue: #3454ff;
-      --red: #ff315b;
-      --gold: #ffd86a;
-      --white: #ffffff;
-      --muted: rgba(255,255,255,.78);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: white;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 50% 18%, rgba(255, 74, 218, .18), transparent 28%),
-        radial-gradient(circle at 50% 72%, rgba(255, 206, 92, .10), transparent 34%),
-        linear-gradient(145deg, #020006 0%, #12001f 44%, #030007 100%);
-      overflow-x: hidden;
-    }
-
-    /* Premium live-show background */
-    .birthday-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      background:
-        radial-gradient(ellipse at center, rgba(255,255,255,.07) 0%, rgba(255,80,220,.09) 18%, transparent 58%),
-        radial-gradient(circle at 50% 84%, rgba(255,197,78,.13), transparent 38%);
-    }
-
-    .birthday-bg::before {
-      content: "";
-      position: absolute;
-      inset: -18%;
-      background:
-        conic-gradient(from 180deg at 50% 55%,
-          transparent 0deg,
-          rgba(255, 76, 219, .22) 24deg,
-          transparent 48deg,
-          transparent 106deg,
-          rgba(255, 215, 112, .16) 132deg,
-          transparent 160deg,
-          transparent 220deg,
-          rgba(132, 95, 255, .18) 252deg,
-          transparent 286deg,
-          transparent 360deg);
-      filter: blur(30px);
-      animation: stageLights 16s linear infinite;
-      opacity: .88;
-    }
-
-    .birthday-bg::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(112deg, transparent 0 42%, rgba(255,255,255,.105) 47%, transparent 53% 100%),
-        linear-gradient(68deg, transparent 0 45%, rgba(255,87,221,.08) 50%, transparent 55% 100%),
-        radial-gradient(circle, transparent 54%, rgba(0,0,0,.74));
-      background-size: 220% 220%, 240% 240%, cover;
-      animation: beamSweep 10s ease-in-out infinite alternate;
-      opacity: .95;
-    }
-
-    @keyframes stageLights { to { transform: rotate(360deg); } }
-    @keyframes beamSweep {
-      from { background-position: -80% 0, 120% 0, center; }
-      to { background-position: 120% 0, -80% 0, center; }
-    }
-
-    .party-ribbon {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 104px;
-      z-index: 1;
-      pointer-events: none;
-      opacity: .7;
-      background:
-        radial-gradient(circle at 6% 28%, #ff7bea 0 9px, transparent 10px),
-        radial-gradient(circle at 14% 22%, #ffd86c 0 7px, transparent 8px),
-        radial-gradient(circle at 24% 30%, #ffb5e8 0 9px, transparent 10px),
-        radial-gradient(circle at 36% 20%, #fff 0 5px, transparent 6px),
-        radial-gradient(circle at 48% 28%, #ff7bea 0 8px, transparent 9px),
-        radial-gradient(circle at 60% 22%, #ffd86c 0 7px, transparent 8px),
-        radial-gradient(circle at 72% 30%, #ffb5e8 0 9px, transparent 10px),
-        radial-gradient(circle at 86% 20%, #fff 0 5px, transparent 6px);
-      filter: drop-shadow(0 0 14px rgba(255,80,220,.65));
-    }
-
-    .sparkles, .confetti-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 2;
-    }
-
-    .sparkles span {
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: 0 0 16px white, 0 0 28px var(--pink);
-      animation: floatUp linear infinite;
-    }
-
-    @keyframes floatUp {
-      from { transform: translateY(110vh) scale(.5); opacity: 0; }
-      12% { opacity: .9; }
-      to { transform: translateY(-10vh) scale(1.3); opacity: 0; }
-    }
-
-    .confetti {
-      position: absolute;
-      width: 9px;
-      height: 15px;
-      border-radius: 3px;
-      animation: confettiFall 1.8s ease-in forwards;
-    }
-
-    @keyframes confettiFall {
-      from { transform: translateY(-25px) rotate(0deg); opacity: 1; }
-      to { transform: translateY(105vh) rotate(820deg); opacity: 0; }
-    }
-
-    .emoji-pop {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      z-index: 710;
-      font-size: clamp(28px, 5vw, 56px);
-      pointer-events: none;
-      animation: emojiBurst 1.25s ease-out forwards;
-      filter: drop-shadow(0 0 16px rgba(255,255,255,.85));
-    }
-
-    @keyframes emojiBurst {
-      from {
-        transform: translate(-50%, -50%) scale(.4) rotate(0deg);
-        opacity: 0;
-      }
-      18% { opacity: 1; }
-      to {
-        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.35) rotate(var(--r));
-        opacity: 0;
-      }
-    }
-
-    .category-glow {
-      position: fixed;
-      inset: 0;
-      z-index: 650;
-      pointer-events: none;
-      opacity: 0;
-      animation: screenGlow 1.35s ease-out forwards;
-      background: radial-gradient(circle at center, var(--glowColor), transparent 62%);
-      mix-blend-mode: screen;
-    }
-
-    @keyframes screenGlow {
-      0% { opacity: 0; }
-      22% { opacity: .58; }
-      100% { opacity: 0; }
-    }
-
-    .crown-drop {
-      position: fixed;
-      top: -110px;
-      left: 50%;
-      z-index: 720;
-      transform: translateX(-50%);
-      font-size: clamp(70px, 11vw, 145px);
-      filter: drop-shadow(0 0 26px rgba(255,226,122,.95)) drop-shadow(0 0 48px rgba(255,66,214,.65));
-      animation: crownDrop 1.45s cubic-bezier(.2,.95,.16,1) forwards;
-      pointer-events: none;
-    }
-
-    @keyframes crownDrop {
-      0% { top: -130px; transform: translateX(-50%) rotate(-18deg) scale(.6); opacity: 0; }
-      55% { top: 34px; transform: translateX(-50%) rotate(8deg) scale(1.1); opacity: 1; }
-      72% { top: 18px; transform: translateX(-50%) rotate(-4deg) scale(.98); }
-      100% { top: 26px; transform: translateX(-50%) rotate(0deg) scale(1); opacity: 0; }
-    }
-
-    /* INTRO / COUNTDOWN */
-    #intro {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      display: grid;
-      place-items: center;
-      padding: 22px;
-      background:
-        radial-gradient(circle at 50% 20%, rgba(255,73,208,.28), transparent 32%),
-        radial-gradient(circle at 50% 80%, rgba(255,200,61,.13), transparent 36%),
-        linear-gradient(145deg, #030006, #18002b 48%, #040008);
-      overflow: hidden;
-    }
-
-    /* MAX VISIBILITY DARK OVERLAY */
-    #intro::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 1;
-    }
-
-    #intro::before {
-      content: "🎈        🎂        🎁        🎈        🎉        🎂";
-      position: absolute;
-      inset: auto 0 8%;
-      text-align: center;
-      font-size: clamp(48px, 8vw, 112px);
-      letter-spacing: clamp(8px, 3vw, 38px);
-      opacity: .12;
-      filter: blur(.2px) drop-shadow(0 0 22px rgba(255,100,220,.75));
-      animation: partyFloat 6s ease-in-out infinite;
-      z-index: 0;
-    }
-
-    .intro-box {
-      position: relative;
-      z-index: 2;
-      width: min(980px, 94vw);
-      text-align: center;
-      padding: clamp(34px, 5vw, 66px);
-      border-radius: 42px;
-      border: 1px solid rgba(255,214,248,.70);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.14), transparent 22%),
-        radial-gradient(circle at 50% 0%, rgba(255,91,220,.30), transparent 44%),
-        rgba(8,0,18,.90);
-      box-shadow:
-        0 0 100px rgba(255,66,214,.50),
-        0 0 180px rgba(255,190,210,.18),
-        0 0 70px rgba(255,210,90,.12),
-        inset 0 0 50px rgba(255,66,214,.16),
-        inset 0 1px 0 rgba(255,255,255,.25);
-      backdrop-filter: blur(22px);
-    }
-
-    .crown {
-      font-size: clamp(34px, 5vw, 62px);
-      line-height: .75;
-      color: #ffe27a;
-      text-shadow: 0 0 16px #fff0aa, 0 0 36px var(--pink);
-      margin-bottom: 14px;
-      transform: translateY(-8px);
-    }
-
-    h1 {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-style: italic;
-      font-size: clamp(58px, 9.4vw, 132px);
-      line-height: .82;
-      letter-spacing: -3px;
-      background: linear-gradient(180deg, #fff 0%, #ffd9fa 32%, #ff62d9 62%, #ffd56d 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      filter: drop-shadow(0 0 10px rgba(255,255,255,.72)) drop-shadow(0 0 34px rgba(255,66,214,.72));
-      animation: titleGlow 2.8s ease-in-out infinite alternate;
-    }
-
-    @keyframes titleGlow {
-      from { filter: drop-shadow(0 0 8px rgba(255,255,255,.55)) drop-shadow(0 0 26px rgba(255,66,214,.56)); }
-      to { filter: drop-shadow(0 0 14px rgba(255,255,255,.9)) drop-shadow(0 0 54px rgba(255,66,214,.86)); }
-    }
-
-    .tagline {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 10px 32px 12px;
-      border-radius: 999px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.18), transparent 20%, rgba(255,255,255,.16) 80%),
-        linear-gradient(90deg, #8d1fff, #ff3ecf, #ffc84d);
-      border: 1px solid rgba(255,255,255,.46);
-      font-size: clamp(16px, 2.55vw, 30px);
-      font-weight: 1000;
-      letter-spacing: 2px;
-      color: white;
-      text-shadow: 0 0 14px rgba(255,255,255,.72);
-      text-transform: uppercase;
-      box-shadow: 0 0 28px rgba(255,66,214,.55), 0 0 60px rgba(255,207,92,.18), inset 0 1px 0 rgba(255,255,255,.38);
-    }
-
-    .intro-love-message {
-      display: grid;
-      gap: 8px;
-      margin: 20px auto 24px;
-      max-width: 780px;
-      color: rgba(255,255,255,.95);
-      font-size: clamp(21px, 3vw, 34px);
-      line-height: 1.22;
-      font-weight: 1000;
-      text-shadow: 0 0 10px #000, 0 0 25px rgba(255,66,214,.8);
-    }
-
-    .intro-love-message span {
-      opacity: 0;
-      transform: translateY(18px) scale(.98);
-      animation: lineReveal .85s ease forwards;
-    }
-
-    .intro-love-message span:nth-child(1) { animation-delay: .2s; }
-    .intro-love-message span:nth-child(2) { animation-delay: 1s; }
-    .intro-love-message span:nth-child(3) { animation-delay: 1.8s; }
-
-    @keyframes lineReveal {
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .countdown-wrap {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin: 24px auto 18px;
-      max-width: 760px;
-      background: rgba(0,0,0,0.85);
-      border-radius: 20px;
-      padding: 12px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,66,214,.45);
-    }
-
-    .count-box {
-      min-height: 120px;
-      border-radius: 20px;
-      background: #000000;
-      border: 2px solid #ff42d6;
-      box-shadow:
-        0 0 25px rgba(255,66,214,0.6),
-        inset 0 0 20px rgba(255,66,214,0.3);
-      display: grid;
-      place-items: center;
-      padding: 10px;
-    }
-
-    .count-number {
-      display: block;
-      font-size: clamp(60px, 9vw, 110px);
-      font-weight: 1000;
-      color: #ffffff;
-      -webkit-text-stroke: 3px black;
-      text-shadow:
-        0 0 6px black,
-        0 0 12px black,
-        0 0 24px black,
-        0 0 40px #ff42d6,
-        0 0 80px #ff42d6,
-        0 0 120px #ff42d6;
-    }
-
-    .count-label {
-      display: block;
-      margin-top: 8px;
-      font-size: 14px;
-      color: #ffffff;
-      opacity: 0.95;
-      text-shadow: 0 0 4px black, 0 0 8px black;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .count-note {
-      color: rgba(255,255,255,.9);
-      font-size: 15px;
-      font-weight: 900;
-      margin-bottom: 20px;
-      text-shadow: 0 0 7px #000;
-    }
-
-    .skip-button {
-      margin-top: 12px;
-      font-size: 14px;
-      padding: 12px 18px;
-      opacity: .78;
-      background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,66,214,.18));
-    }
-
-    .birthday-unlocked {
-      animation: unlockedPulse 1.2s ease-in-out infinite alternate;
-    }
-
-    .final-countdown-splash {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      display: none;
-      place-items: center;
-      pointer-events: none;
-      background: rgba(0,0,0,.65);
-    }
-
-    .final-countdown-splash.show { display: grid; }
-
-    .final-number {
-      font-size: clamp(160px, 28vw, 320px);
-      font-weight: 1000;
-      color: #ffffff;
-      -webkit-text-stroke: 4px black;
-      text-shadow:
-        0 0 10px black,
-        0 0 20px black,
-        0 0 40px black,
-        0 0 60px #ff42d6,
-        0 0 120px #ff42d6,
-        0 0 180px #ff42d6;
-      animation: finalPop .85s ease-in-out infinite;
-    }
-
-    @keyframes finalPop {
-      0% { transform: scale(.72) rotate(-4deg); opacity: .25; }
-      42% { transform: scale(1.08) rotate(2deg); opacity: 1; }
-      100% { transform: scale(.92) rotate(0deg); opacity: .75; }
-    }
-
-    .midnight-freeze {
-      position: fixed;
-      inset: 0;
-      z-index: 980;
-      display: grid;
-      place-items: center;
-      background: rgba(0,0,0,.86);
-      color: white;
-      pointer-events: none;
-      animation: freezeFade 1.15s ease forwards;
-    }
-
-    .midnight-freeze div {
-      font-size: clamp(38px, 8vw, 100px);
-      font-weight: 1000;
-      text-align: center;
-      text-shadow: 0 0 20px black, 0 0 35px white, 0 0 70px var(--pink);
-    }
-
-    @keyframes freezeFade {
-      0%, 72% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes unlockedPulse {
-      from { transform: scale(1); filter: brightness(1); }
-      to { transform: scale(1.015); filter: brightness(1.16); }
-    }
-
-    @keyframes partyFloat {
-      0%, 100% { transform: translateY(0) rotate(-3deg); }
-      50% { transform: translateY(-18px) rotate(4deg); }
-    }
-
-    /* APP */
-    .app {
-      position: relative;
-      z-index: 3;
-      width: min(1380px, 96vw);
-      margin: 0 auto;
-      padding: 22px 0 46px;
-    }
-
-    .top-title {
-      text-align: center;
-      margin-bottom: 14px;
-      position: relative;
-    }
-
-    .game-grid {
-      display: grid;
-      grid-template-columns: 255px 1fr 255px;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    @media (max-width: 1120px) {
-      .game-grid { grid-template-columns: 1fr; }
-      .side { order: 2; }
-      .center-stage { order: 1; }
-    }
-
-    .panel {
-      position: relative;
-      border: 1px solid rgba(255, 199, 244, .55);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.035) 22%, rgba(10,0,24,.82)),
-        rgba(9,0,20,.74);
-      box-shadow:
-        0 0 34px rgba(255,66,214,.32),
-        0 0 86px rgba(255,200,120,.10),
-        inset 0 0 34px rgba(255,66,214,.10),
-        inset 0 1px 0 rgba(255,255,255,.20);
-      border-radius: 24px;
-      backdrop-filter: blur(18px);
-    }
-
-    .side {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .birthday-card, .how-card, .mvp-card, .chaos-card {
-      padding: 22px 16px;
-      min-height: 142px;
-      display: grid;
-      place-items: center;
-      text-align: center;
-    }
-
-    .birthday-card strong,
-    .how-card strong,
-    .mvp-card strong,
-    .chaos-card strong {
-      font-size: 25px;
-      line-height: 1.2;
-      color: #ffd0f7;
-      text-shadow: 0 0 14px var(--pink);
-      text-transform: uppercase;
-    }
-
-    .category-card {
-      padding: 14px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .cat-head {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      font-weight: 1000;
-      font-size: 23px;
-      text-transform: uppercase;
-    }
-
-    .cat-icon {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      border: 1px solid currentColor;
-      box-shadow: 0 0 16px currentColor;
-      font-size: 24px;
-    }
-
-    .cat-count {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .meter {
-      width: 100%;
-      height: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: rgba(0,0,0,.45);
-      overflow: hidden;
-    }
-
-    .meter span {
-      display: block;
-      height: 100%;
-      width: 100%;
-      border-radius: 999px;
-      transition: width .35s ease;
-    }
-
-    .dare-color { color: #ff6d7f; }
-    .truth-color { color: #9e96ff; }
-    .pickup-color { color: #ffd95a; }
-    .dare-meter { background: linear-gradient(90deg, var(--red), #ff8aa0); box-shadow: 0 0 12px var(--red); }
-    .truth-meter { background: linear-gradient(90deg, var(--blue), #b6a9ff); box-shadow: 0 0 12px var(--blue); }
-    .pickup-meter { background: linear-gradient(90deg, var(--gold), #fff1a0); box-shadow: 0 0 12px var(--gold); }
-
-    .center-stage {
-      display: grid;
-      gap: 18px;
-    }
-
-    .wheel-panel {
-      padding: 22px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255, 243, 255, .18), transparent 38%),
-        radial-gradient(circle at 50% 50%, rgba(255, 66, 214, .16), transparent 55%),
-        linear-gradient(180deg, rgba(255,255,255,.18), rgba(10,0,24,.82));
-      box-shadow:
-        0 0 48px rgba(255, 66, 214, .38),
-        0 0 130px rgba(255, 215, 120, .16),
-        inset 0 0 50px rgba(255,255,255,.08);
-    }
-
-    .wheel-wrap {
-      position: relative;
-      width: min(670px, 88vw);
-      aspect-ratio: 1;
-      display: grid;
-      place-items: center;
-      filter: drop-shadow(0 0 38px rgba(255,66,214,.45));
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      transition: transform 6.2s cubic-bezier(.08,.82,.12,1);
-      box-shadow:
-        0 0 0 10px rgba(255,255,255,.11),
-        0 0 0 22px rgba(255,66,214,.18),
-        0 0 60px rgba(255,66,214,.72),
-        0 0 140px rgba(255,200,90,.25);
-      animation: wheelAura 2.7s ease-in-out infinite alternate;
-    }
-
-    @keyframes wheelAura {
-      from { filter: drop-shadow(0 0 10px rgba(255,66,214,.45)); }
-      to { filter: drop-shadow(0 0 28px rgba(255,213,90,.38)); }
-    }
-
-    .diamond-pointer {
-      position: absolute;
-      top: -10px;
-      width: 76px;
-      height: 76px;
-      transform: rotate(45deg);
-      background: linear-gradient(135deg, #fff, #ff8bea 32%, #a40072 70%, #fff);
-      border: 2px solid #ffd8fa;
-      box-shadow: 0 0 22px #ff5be3, 0 0 55px rgba(255,66,214,.65);
-      z-index: 7;
-      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-    }
-
-    .center-medal {
-      position: absolute;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      z-index: 6;
-      background:
-        radial-gradient(circle at 30% 20%, rgba(255,255,255,.28), transparent 20%),
-        radial-gradient(circle, #170022 0 45%, #05000a 46% 100%);
-      border: 3px solid rgba(255,132,232,.8);
-      box-shadow: inset 0 0 24px rgba(255,66,214,.35), 0 0 35px rgba(255,66,214,.62);
-      font-size: 58px;
-      text-shadow: 0 0 18px var(--pink);
-    }
-
-    .step-panel {
-      padding: 16px;
-      display: grid;
-      grid-template-columns: .72fr 1fr;
-      gap: 16px;
-      align-items: center;
-    }
-
-    @media (max-width: 720px) {
-      .step-panel { grid-template-columns: 1fr; }
-    }
-
-    .step-left {
-      text-align: center;
-      border-right: 1px solid rgba(255,66,214,.28);
-      padding-right: 12px;
-    }
-
-    @media (max-width: 720px) {
-      .step-left { border-right: 0; border-bottom: 1px solid rgba(255,66,214,.28); padding: 0 0 12px; }
-    }
-
-    .step-left .small {
-      color: #ffd0f7;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-shadow: 0 0 12px var(--pink);
-    }
-
-    .big-category {
-      font-size: clamp(46px, 7vw, 82px);
-      font-weight: 1000;
-      line-height: .95;
-      margin: 8px 0;
-      color: #ecdfff;
-      text-shadow: 0 0 18px var(--purple), 0 0 42px var(--pink);
-      text-transform: uppercase;
-    }
-
-    .locked-box {
-      min-height: 155px;
-      border: 1px solid rgba(255,130,235,.54);
-      border-radius: 16px;
-      background: rgba(0,0,0,.42);
-      display: grid;
-      place-items: center;
-      padding: 18px;
-      text-align: center;
-      box-shadow: inset 0 0 25px rgba(255,66,214,.08);
-      transition: box-shadow .35s ease, transform .35s ease;
-    }
-
-    .locked-box.hype {
-      transform: scale(1.015);
-      box-shadow: inset 0 0 25px rgba(255,66,214,.18), 0 0 32px rgba(255,66,214,.32);
-    }
-
-    .lock {
-      font-size: 44px;
-      text-shadow: 0 0 18px var(--pink);
-    }
-
-    .mystery {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 26px;
-      letter-spacing: 8px;
-      font-weight: 1000;
-    }
-
-    .result-text-inline {
-      font-size: clamp(28px, 4.8vw, 54px);
-      line-height: 1.12;
-      font-weight: 1000;
-      text-wrap: balance;
-      text-shadow: 0 0 20px rgba(255,255,255,.22);
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 14px;
-      align-items: center;
-    }
-
-    @media (max-width: 780px) {
-      .controls { grid-template-columns: 1fr; }
-    }
-
-    .name-input {
-      width: 100%;
-      border: 1px solid rgba(255,105,220,.42);
-      border-radius: 15px;
-      padding: 16px;
-      background: rgba(0,0,0,.55);
-      color: white;
-      outline: none;
-      font-size: 17px;
-      box-shadow: inset 0 0 18px rgba(255,66,214,.09);
-    }
-
-    .name-input::placeholder { color: rgba(255,255,255,.56); }
-
-    button {
-      border: 1px solid rgba(255,165,242,.72);
-      border-radius: 16px;
-      padding: 16px 28px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.18), transparent 30%),
-        linear-gradient(135deg, #5b0d7d, #ff42d6 48%, #5b0d7d);
-      color: white;
-      font-size: 20px;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(255,66,214,.45), inset 0 0 18px rgba(255,255,255,.15);
-      text-shadow: 0 0 9px rgba(255,255,255,.55);
-      transition: transform .16s ease, filter .16s ease, opacity .16s ease;
-    }
-
-    button:hover { transform: translateY(-2px); filter: brightness(1.12); }
-    button:active { transform: translateY(1px) scale(.985); }
-    button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-
-    .mini-btn {
-      font-size: 14px;
-      padding: 13px 15px;
-      background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,66,214,.18));
-    }
-
-    .how-list {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      display: grid;
-      gap: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      text-align: left;
-    }
-
-    .how-list li {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .num {
-      flex: 0 0 auto;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--pink2);
-      color: var(--pink2);
-      box-shadow: 0 0 12px rgba(255,66,214,.45);
-    }
-
-
-    .save-note {
-      margin-top: 10px;
-      color: rgba(255,255,255,.82);
-      font-size: 13px;
-      font-weight: 800;
-      text-shadow: 0 0 8px black;
-      text-align: center;
-    }
-
-    .bottom-actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    #popup {
-      position: fixed;
-      inset: 0;
-      z-index: 700;
-      display: none;
-      place-items: center;
-      padding: 20px;
-      background: rgba(0,0,0,.78);
-    }
-
-    .popup-card {
-      width: min(920px, 95vw);
-      border-radius: 26px;
-      border: 1px solid rgba(255,105,220,.62);
-      background:
-        radial-gradient(circle at 15% 0%, rgba(255,255,255,.16), transparent 28%),
-        linear-gradient(160deg, rgba(23,0,44,.98), rgba(4,0,9,.98));
-      box-shadow: 0 0 95px rgba(255,66,214,.5), inset 0 0 30px rgba(255,66,214,.12);
-      padding: clamp(24px, 5vw, 46px);
-      text-align: center;
-      animation: pop .32s ease;
-    }
-
-    @keyframes pop {
-      from { transform: scale(.88); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .popup-type {
-      display: inline-block;
-      padding: 9px 18px;
-      border-radius: 999px;
-      border: 1px solid currentColor;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      box-shadow: 0 0 18px currentColor;
-      margin-bottom: 18px;
-    }
-
-    .popup-player {
-      color: var(--muted);
-      font-weight: 900;
-      font-size: clamp(18px, 2.4vw, 25px);
-      margin-bottom: 16px;
-    }
-
-    .popup-text {
-      font-size: clamp(34px, 6vw, 68px);
-      line-height: 1.08;
-      font-weight: 1000;
-      letter-spacing: -1px;
-      text-wrap: balance;
-      margin-bottom: 26px;
-      text-shadow: 0 0 22px rgba(255,255,255,.22);
-    }
-
-    .team-final-message {
-      max-width: 760px;
-      margin: 0 auto;
-      font-size: clamp(28px, 5vw, 62px);
-      line-height: 1.12;
-      font-weight: 1000;
-      text-wrap: balance;
-      text-shadow: 0 0 26px rgba(255,255,255,.28), 0 0 58px var(--pink);
-    }
-
-
-    .wild-card-mode .popup-card {
-      border-color: rgba(255, 216, 106, .95);
-      box-shadow:
-        0 0 90px rgba(255, 216, 106, .45),
-        0 0 130px rgba(255, 66, 214, .35),
-        inset 0 0 35px rgba(255, 216, 106, .16);
-    }
-
-    .wild-card-mode .popup-type {
-      color: #ffd86a !important;
-      border-color: #ffd86a;
-      box-shadow: 0 0 24px rgba(255, 216, 106, .95);
-      background: rgba(0,0,0,.45);
-    }
-
-    .wild-shake {
-      animation: wildShake .45s ease-in-out;
-    }
-
-    @keyframes wildShake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-8px) rotate(-1deg); }
-      40% { transform: translateX(8px) rotate(1deg); }
-      60% { transform: translateX(-5px) rotate(-.7deg); }
-      80% { transform: translateX(5px) rotate(.7deg); }
-    }
-
-
-    /* =============================== */
-    /* 🎂 BIRTHDAY MODE VISUAL UPGRADE */
-    /* =============================== */
-
-    .birthday-rain {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .birthday-rain span {
-      position: absolute;
-      top: -12vh;
-      font-size: clamp(20px, 2.5vw, 34px);
-      opacity: .42;
-      filter: drop-shadow(0 0 10px rgba(255, 170, 230, .75));
-      animation: birthdayRainFall linear infinite;
-    }
-
-    .birthday-big-corner {
-      position: fixed;
-      z-index: 2;
-      pointer-events: none;
-      font-size: clamp(86px, 13vw, 190px);
-      opacity: .40;
-      filter: drop-shadow(0 0 28px rgba(255, 120, 224, .80));
-      animation: birthdayCornerFloat 5.5s ease-in-out infinite;
-    }
-
-    .birthday-big-corner.left {
-      left: 1.5vw;
-      bottom: 4vh;
-    }
-
-    .birthday-big-corner.right {
-      right: 1.5vw;
-      bottom: 4vh;
-      animation-delay: -1.8s;
-    }
-
-    .top-title::after {
-      content: "🎂 Made with love by your team 💜";
-      display: inline-block;
-      margin-top: 12px;
-      padding: 10px 20px;
-      border-radius: 999px;
-      color: #fff5cd;
-      background: rgba(0,0,0,.45);
-      border: 1px solid rgba(255, 216, 106, .65);
-      font-size: clamp(13px, 1.8vw, 18px);
-      font-weight: 1000;
-      letter-spacing: .8px;
-      text-shadow: 0 0 10px black, 0 0 18px rgba(255,216,106,.65);
-      box-shadow:
-        0 0 20px rgba(255,216,106,.18),
-        inset 0 0 18px rgba(255,216,106,.08);
-    }
-
-    .birthday-card strong::before {
-      content: "🎂 ";
-    }
-
-    .birthday-card strong::after {
-      content: " 🎉";
-    }
-
-    .wheel-panel::before {
-      content: "✨ Birthday Show ✨";
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.46);
-      border: 1px solid rgba(255,216,106,.55);
-      color: #fff0b5;
-      font-size: 13px;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-shadow: 0 0 8px black, 0 0 16px rgba(255,216,106,.7);
-      box-shadow: 0 0 18px rgba(255,216,106,.18);
-    }
-
-    #spinBtn {
-      animation: birthdayButtonPulse 1.9s ease-in-out infinite alternate;
-    }
-
-    .panel {
-      overflow: hidden;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(255,216,106,.10), transparent 28%),
-        radial-gradient(circle at 90% 100%, rgba(255,66,214,.10), transparent 30%);
-      opacity: .9;
-    }
-
-    .cat-head span:last-child,
-    .birthday-card strong,
-    .chaos-card strong,
-    .how-card strong,
-    .mvp-card strong {
-      position: relative;
-      z-index: 1;
-    }
-
-    @keyframes birthdayRainFall {
-      from { transform: translateY(-12vh) rotate(0deg); opacity: 0; }
-      15% { opacity: .45; }
-      to { transform: translateY(112vh) rotate(420deg); opacity: 0; }
-    }
-
-    @keyframes birthdayCornerFloat {
-      0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
-      50% { transform: translateY(-20px) rotate(4deg) scale(1.04); }
-    }
-
-    @keyframes birthdayButtonPulse {
-      from {
-        box-shadow:
-          0 0 22px rgba(255,66,214,.45),
-          0 0 42px rgba(255,216,106,.10),
-          inset 0 0 18px rgba(255,255,255,.15);
-      }
-      to {
-        box-shadow:
-          0 0 34px rgba(255,66,214,.78),
-          0 0 72px rgba(255,216,106,.22),
-          inset 0 0 22px rgba(255,255,255,.20);
-      }
-    }
-
-    @media (max-width: 900px) {
-      .birthday-big-corner,
-
-      .birthday-rain span {
-        opacity: .26;
-      }
-
-      .wheel-panel::before {
-        font-size: 11px;
-        top: 8px;
-      }
-    }
-
-
-    /* FINAL FIX: remove weird curved overlay line near the wheel */
-    .birthday-mode-layer,
-    .birthday-mode-layer::before,
-    .birthday-mode-layer::after,
-    .birthday-orbit,
-    .birthday-orbit::before,
-    .birthday-orbit::after {
-      display: none !important;
-      content: none !important;
-      opacity: 0 !important;
-    }
-
-    .wheel-panel {
-      isolation: isolate;
-      overflow: hidden !important;
-    }
-
-    .wheel-wrap {
-      z-index: 5;
-    }
-
-    canvas {
-      position: relative;
-      z-index: 6;
-    }
-
-
-    .wheel-panel::after,
-    .wheel-panel > *::before {
-      pointer-events: none;
-    }
-
-    .wheel-panel.panel::before {
-      display: none !important;
-      content: none !important;
-    }
-
-    .hidden { display: none !important; }
-
-    @media (max-width: 660px) {
-      .countdown-wrap { grid-template-columns: repeat(2, 1fr); }
-      .count-box { min-height: 105px; }
-      .game-grid { gap: 14px; }
-      .center-medal { width: 110px; height: 110px; font-size: 44px; }
-      .diamond-pointer { width: 58px; height: 58px; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elizabethix Birthday Wheel</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    background:
+      radial-gradient(circle at 50% 10%, rgba(255, 83, 220, .25), transparent 28%),
+      radial-gradient(circle at 20% 80%, rgba(255, 216, 106, .12), transparent 24%),
+      radial-gradient(circle at 80% 75%, rgba(143, 92, 255, .18), transparent 26%),
+      linear-gradient(140deg, #040006, #190020 50%, #050007);
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "🎂 🎉 🎈 ✨ 💜 👑 🎁";
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: clamp(34px, 6vw, 80px);
+    letter-spacing: 28px;
+    opacity: .06;
+    pointer-events: none;
+    animation: drift 10s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    from { transform: translateY(-10px); }
+    to { transform: translateY(18px); }
+  }
+
+  .hidden { display: none !important; }
+
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(0,0,0,.45);
+  }
+
+  .intro-box {
+    width: min(900px, 94vw);
+    text-align: center;
+    border: 1px solid rgba(255, 160, 235, .75);
+    border-radius: 28px;
+    padding: clamp(26px, 5vw, 56px);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 90, 220, .24), transparent 38%),
+      rgba(12, 0, 22, .88);
+    box-shadow: 0 0 70px rgba(255, 66, 214, .42), inset 0 0 35px rgba(255,255,255,.08);
+  }
+
+  .crown { font-size: clamp(34px, 5vw, 62px); color: #ffd86a; text-shadow: 0 0 18px #ffd86a; }
+  h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: clamp(54px, 9vw, 124px);
+    line-height: .9;
+    background: linear-gradient(180deg, white, #ff9be9 58%, #ffd86a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 24px rgba(255,66,214,.8));
+  }
+  .tagline {
+    display: inline-block;
+    margin: 12px 0 18px;
+    padding: 10px 26px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #8d2dff, #ff42d6, #ffd86a);
+    font-size: clamp(15px, 2.4vw, 26px);
+    font-weight: 1000;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 0 28px rgba(255,66,214,.55);
+  }
+
+  .love {
+    font-size: clamp(19px, 3vw, 32px);
+    font-weight: 1000;
+    line-height: 1.35;
+    text-shadow: 0 0 12px black;
+    margin-bottom: 24px;
+  }
+
+  .countdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 720px;
+    margin: 0 auto 18px;
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,66,214,.55);
+    background: rgba(0,0,0,.72);
+  }
+  .count-box {
+    min-height: 112px;
+    border-radius: 16px;
+    background: #050006;
+    border: 2px solid #ff42d6;
+    display: grid;
+    place-items: center;
+    padding: 10px;
+    box-shadow: inset 0 0 22px rgba(255,66,214,.25), 0 0 24px rgba(255,66,214,.35);
+  }
+  .num {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 1000;
+    -webkit-text-stroke: 3px black;
+    text-shadow: 0 0 8px black, 0 0 28px #ff42d6, 0 0 60px #ff42d6;
+  }
+  .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 1000;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .note { font-size: 13px; font-weight: 900; opacity: .9; margin-bottom: 16px; }
+  button {
+    border: 1px solid rgba(255,210,250,.8);
+    border-radius: 14px;
+    padding: 15px 22px;
+    background: linear-gradient(135deg, #6f20bd, #ff42d6, #7b1cb2);
+    color: white;
+    font-weight: 1000;
+    font-size: 18px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 26px rgba(255,66,214,.5);
+  }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .backup { margin-top: 10px; font-size: 12px; padding: 10px 14px; background: rgba(255,255,255,.12); }
+
+  .app {
+    position: relative;
+    z-index: 2;
+    width: min(1380px, 96vw);
+    margin: 0 auto;
+    padding: 22px 0 46px;
+  }
+  header { text-align: center; margin-bottom: 16px; }
+  .made { color: #fff0bd; font-weight: 1000; text-shadow: 0 0 12px #ff42d6; margin-top: 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 1050px) { .grid { grid-template-columns: 1fr; } .side { order: 2; } .center { order: 1; } }
+  .side { display: grid; gap: 12px; }
+  .card {
+    border: 1px solid rgba(255,160,235,.55);
+    border-radius: 18px;
+    background: rgba(12,0,25,.78);
+    box-shadow: 0 0 28px rgba(255,66,214,.24), inset 0 0 24px rgba(255,255,255,.06);
+    padding: 16px;
+    text-align: center;
+  }
+  .card strong { font-size: 21px; text-transform: uppercase; text-shadow: 0 0 12px #ff42d6; }
+  .cat { text-align: left; }
+  .cat-title { font-size: 22px; font-weight: 1000; margin-bottom: 8px; }
+  .small { font-size: 13px; opacity: .85; font-weight: 900; }
+  .bar { height: 10px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: 8px; }
+  .bar span { display:block; height:100%; width:100%; border-radius:99px; }
+  .dare { color: #ff6d7f; } .truth { color:#918cff; } .pickup { color:#ffd86a; }
+
+  .center { display:grid; gap: 14px; }
+  .wheel-card { padding: 18px; display:grid; place-items:center; position:relative; overflow:hidden; }
+  .wheel-card::before {
+    content:"✨ BIRTHDAY SHOW ✨";
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#fff0bd;
+    font-weight:1000;
+    font-size:12px;
+    z-index:3;
+  }
+  .wheel-wrap {
+    position: relative;
+    width: min(650px, 88vw);
+    aspect-ratio: 1;
+    display:grid;
+    place-items:center;
+  }
+  canvas {
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    transition: transform 5.8s cubic-bezier(.08,.82,.12,1);
+    box-shadow: 0 0 0 10px rgba(255,255,255,.09), 0 0 0 22px rgba(255,66,214,.17), 0 0 70px rgba(255,66,214,.65);
+  }
+  .pointer {
+    position:absolute; top:-5px; width:70px; height:70px; z-index:4;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, white, #ff42d6, #8a005d);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    box-shadow:0 0 24px #ff42d6;
+  }
+  .center-medal {
+    position:absolute; width:130px; height:130px; border-radius:50%; z-index:5;
+    display:grid; place-items:center; font-size:50px;
+    background:#09000f; border:3px solid rgba(255,120,235,.8);
+    box-shadow:0 0 30px rgba(255,66,214,.7);
+  }
+
+  .result-panel {
+    display:grid;
+    grid-template-columns:.65fr 1fr;
+    gap:14px;
+    align-items:center;
+    padding:16px;
+  }
+  @media (max-width:700px) { .result-panel { grid-template-columns:1fr; } }
+  .big { font-size: clamp(42px, 7vw, 76px); font-weight:1000; text-shadow:0 0 22px #ff42d6; text-transform:uppercase; }
+  .locked {
+    min-height:140px;
+    border-radius:16px;
+    border:1px solid rgba(255,120,235,.55);
+    background:rgba(0,0,0,.45);
+    display:grid;
+    place-items:center;
+    padding:18px;
+    text-align:center;
+  }
+  .result-text { font-size: clamp(25px, 4.5vw, 50px); font-weight:1000; line-height:1.15; white-space:pre-line; }
+
+  .controls { display:grid; grid-template-columns: 1fr auto auto; gap:10px; }
+  @media (max-width:700px) { .controls { grid-template-columns:1fr; } }
+  input {
+    width:100%;
+    background:rgba(0,0,0,.55);
+    color:white;
+    border:1px solid rgba(255,100,220,.55);
+    border-radius:12px;
+    padding:14px;
+    font-size:16px;
+  }
+
+  #popup {
+    position:fixed; inset:0; z-index:50; display:none; place-items:center;
+    background:rgba(0,0,0,.82); padding:18px;
+  }
+  .popup-card {
+    width:min(900px, 95vw);
+    border-radius:24px;
+    border:1px solid rgba(255,160,235,.75);
+    background:linear-gradient(160deg, #18002a, #050008);
+    padding:clamp(22px, 5vw, 44px);
+    text-align:center;
+    box-shadow:0 0 90px rgba(255,66,214,.5);
+  }
+  .popup-type { display:inline-block; padding:8px 16px; border-radius:999px; border:1px solid currentColor; font-weight:1000; margin-bottom:14px; color:#ffd86a; }
+  .popup-player { color:rgba(255,255,255,.82); font-weight:900; margin-bottom:12px; }
+  .popup-text { font-size:clamp(30px, 5vw, 64px); font-weight:1000; line-height:1.1; white-space:pre-line; }
+
+  .confetti { position:fixed; top:-20px; width:10px; height:16px; border-radius:3px; z-index:60; animation:fall 1.8s ease-in forwards; pointer-events:none; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(700deg); opacity:0; } }
+  @media (max-width:650px) { .countdown { grid-template-columns:repeat(2,1fr); } }
+</style>
 </head>
-
 <body>
-  <div class="birthday-bg"></div>
-  <div class="birthday-big-corner left">🎂</div>
-  <div class="birthday-big-corner right">🎁</div>
-  <div class="birthday-rain" id="birthdayRain"></div>
-
-  <div class="party-ribbon"></div>
-  <div class="sparkles" id="sparkles"></div>
-  <div class="confetti-layer" id="confettiLayer"></div>
-
   <div id="intro">
-    <div class="final-countdown-splash" id="finalCountdownSplash">
-      <div class="final-number" id="finalCountdownNumber">10</div>
-    </div>
-
-    <div class="intro-box" id="introBox">
-      <div class="crown">♕</div>
+    <div class="intro-box">
+      <div class="crown">👑</div>
       <h1>Elizabethix</h1>
       <div class="tagline" id="introTagline">Birthday Countdown</div>
-
-      <div class="intro-love-message" id="introMessage">
-        <span>From your team…</span>
-        <span>we love you so much 💜</span>
-        <span>and this is just the beginning ✨</span>
+      <div class="love" id="introMessage">From your team...<br>we love you so much 💜<br>and this is just the beginning ✨</div>
+      <div class="countdown" id="countdownWrap">
+        <div class="count-box"><div><span class="num" id="days">--</span><span class="label">Days</span></div></div>
+        <div class="count-box"><div><span class="num" id="hours">--</span><span class="label">Hours</span></div></div>
+        <div class="count-box"><div><span class="num" id="minutes">--</span><span class="label">Minutes</span></div></div>
+        <div class="count-box"><div><span class="num" id="seconds">--</span><span class="label">Seconds</span></div></div>
       </div>
-
-      <div class="countdown-wrap" id="countdownWrap">
-        <div class="count-box"><span class="count-number" id="days">00</span><span class="count-label">Days</span></div>
-        <div class="count-box"><span class="count-number" id="hours">00</span><span class="count-label">Hours</span></div>
-        <div class="count-box"><span class="count-number" id="minutes">00</span><span class="count-label">Minutes</span></div>
-        <div class="count-box"><span class="count-number" id="seconds">00</span><span class="count-label">Seconds</span></div>
-      </div>
-
-      <div class="count-note" id="countNote">Target: April 29 • 00:00 Kyiv time 🇺🇦</div>
-      <button id="enterButton" onclick="startApp()">Start Birthday Wheel Now</button>
-      <br>
-      <button class="skip-button" onclick="startApp()">Backup Start / Skip Countdown</button>
+      <div class="note" id="countNote">Target: April 29 • 00:00 Kyiv time 🇺🇦</div>
+      <button onclick="startApp()">Start Birthday Wheel Now</button><br>
+      <button class="backup" onclick="startApp()">Backup Start / Skip Countdown</button>
     </div>
   </div>
 
   <main class="app">
-    <header class="top-title">
-      <div class="crown">♕</div>
+    <header>
+      <div class="crown">👑</div>
       <h1>Elizabethix</h1>
       <div class="tagline">Birthday Wheel of Fate 🎂</div>
+      <div class="made">🎂 Made with love by your team 💜</div>
     </header>
 
-    <section class="game-grid">
+    <section class="grid">
       <aside class="side">
-        <div class="panel birthday-card"><strong>Happy Birthday<br>Elizabethix!<br>🎂✨</strong></div>
-
-        <div class="panel category-card dare-color">
-          <div class="cat-head"><span class="cat-icon">🔥</span><span>Dare</span></div>
-          <div class="cat-count"><span id="dareLeft">30</span> items left</div>
-          <div class="meter"><span id="dareMeter" class="dare-meter"></span></div>
-        </div>
-
-        <div class="panel category-card truth-color">
-          <div class="cat-head"><span class="cat-icon">?</span><span>Truth</span></div>
-          <div class="cat-count"><span id="truthLeft">30</span> items left</div>
-          <div class="meter"><span id="truthMeter" class="truth-meter"></span></div>
-        </div>
-
-        <div class="panel category-card pickup-color">
-          <div class="cat-head"><span class="cat-icon">♡</span><span>Pick-up<br>Lines</span></div>
-          <div class="cat-count"><span id="pickupLeft">30</span> items left</div>
-          <div class="meter"><span id="pickupMeter" class="pickup-meter"></span></div>
-        </div>
-
-        <div class="panel chaos-card"><strong>Birthday<br>chaos<br>begins!</strong></div>
+        <div class="card"><strong>🎂 Happy Birthday<br>Elizabethix! 🎉</strong></div>
+        <div class="card cat dare"><div class="cat-title">🔥 DARE</div><div class="small"><span id="dareLeft">30</span> items left</div><div class="bar"><span id="dareBar" style="background:#ff456b"></span></div></div>
+        <div class="card cat truth"><div class="cat-title">? TRUTH</div><div class="small"><span id="truthLeft">30</span> items left</div><div class="bar"><span id="truthBar" style="background:#5c64ff"></span></div></div>
+        <div class="card cat pickup"><div class="cat-title">♡ PICK-UP LINES</div><div class="small"><span id="pickupLeft">30</span> items left</div><div class="bar"><span id="pickupBar" style="background:#ffd86a"></span></div></div>
+        <div class="card"><strong>Birthday<br>Chaos<br>Begins!</strong></div>
       </aside>
 
-      <section class="center-stage">
-        <div class="panel wheel-panel">
+      <section class="center">
+        <div class="card wheel-card">
           <div class="wheel-wrap">
-            <div class="diamond-pointer"></div>
+            <div class="pointer"></div>
             <canvas id="wheel" width="900" height="900"></canvas>
-            <div class="center-medal" id="centerMedal">♕</div>
+            <div class="center-medal" id="centerMedal">👑</div>
           </div>
         </div>
-
-        <div class="panel step-panel">
-          <div class="step-left">
-            <div class="small" id="stepTitle">Step 1</div>
-            <div class="big-category" id="bigCategory">Fate</div>
+        <div class="card result-panel">
+          <div>
+            <div class="small" id="stepTitle">STEP 1</div>
+            <div class="big" id="bigCategory">FATE</div>
             <div class="small" id="stepSubtitle">Spin to choose T / D / P</div>
           </div>
-          <div class="locked-box" id="revealBox">
+          <div class="locked" id="revealBox">
             <div>
-              <div class="lock" id="lockIcon">🔒</div>
-              <div class="mystery" id="mysteryText">?????</div>
+              <div style="font-size:38px" id="lockIcon">🔒</div>
+              <div class="result-text" id="mysteryText">?????</div>
             </div>
           </div>
         </div>
-
         <div class="controls">
-          <input class="name-input" id="player" placeholder="Today’s MVP name" autocomplete="off" />
+          <input id="player" placeholder="Today’s MVP name" />
           <button id="spinBtn" onclick="mainSpin()">Spin The Wheel 🎂</button>
-          <div class="bottom-actions">
-            <button class="mini-btn" onclick="toggleSound()" id="soundBtn">No Music</button>
-            <button class="mini-btn" onclick="showFinalMessage()">Final 💜</button>
-            <button class="mini-btn" onclick="resetSavedGame()">Reset Save</button>
-          </div>
+          <button onclick="resetSavedGame()">Reset Save</button>
         </div>
-        <div class="save-note" id="saveNote">Progress is saved on this device, so the game can continue later.</div>
+        <div class="small" id="saveNote" style="text-align:center">Progress saved on this device.</div>
       </section>
 
       <aside class="side">
-        <div class="panel how-card">
-          <div>
-            <strong>How to play</strong>
-            <ul class="how-list">
-              <li><span class="num">1</span><span>Spin to choose T, D, or P.</span></li>
-              <li><span class="num">2</span><span>Spin again to reveal the hidden fate.</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="panel mvp-card">
-          <strong>Today’s<br>MVP<br><span id="mvpName">?</span></strong>
-        </div>
-
-        <div class="panel chaos-card"><strong>Birthday<br>surprise<br>mode</strong></div>
-        <div class="panel chaos-card"><strong>No spoilers<br>Only birthday<br>fate</strong></div>
+        <div class="card"><strong>How to play</strong><br><br><div class="small">1. Spin to choose Truth, Dare or Pick-up.<br>2. Spin again to reveal the hidden fate.<br>3. Wild Cards can appear before the category.</div></div>
+        <div class="card"><strong>Today’s<br>MVP<br><span id="mvpName">?</span></strong></div>
+        <div class="card"><strong>Birthday<br>Surprise<br>Mode 🎁</strong></div>
+        <div class="card"><strong>No spoilers<br>Only birthday<br>fate ✨</strong></div>
       </aside>
     </section>
   </main>
@@ -1283,869 +354,357 @@
       <div class="popup-type" id="popupType">Result</div>
       <div class="popup-player" id="popupPlayer"></div>
       <div class="popup-text" id="popupText"></div>
+      <br><br>
       <button onclick="closePopup()">Continue</button>
     </div>
   </div>
 
-  <script>
-    const truths = [
-      "What’s a secret you’ve never told your parents?",
-      "What is the most embarrassing thing you remember that happened with you?",
-      "Tell us a name and some information of a person you hate so much in your life",
-      "Have you ever liked someone and acted completely normal (but actually panicking)?",
-      "Tell us something that you told us here but it was lie",
-      "Do you still have feelings to your exes?",
-      "What’s the last lie you told?",
-      "Tell the Mvp of this battle What is the most thing you love about him",
-      "Have you ever stalked the Mvp profile?",
-      "What’s the dumbest thing you believed as a kid for way too long?",
-      "What is the strangest or most embarrassing thing you've ever searched for using an AI?",
-      "What’s a lie you tell all the time that people still believe?",
-      "What’s your most toxic thing in your personality?",
-      "Scale from 1 to 10 villain in your personality",
-      "What is true love means to you?",
-      "Have you took the first step with a crush before him?",
-      "Who here do you think would survive the longest in a zombie apocalypse? and Why?",
-      "What’s something people always misunderstand about you?",
-      "What was the most moment that you were very angry in your streaming career?",
-      "Would you travel another country with someone from the team?",
-      "Do you think u can have real friends through tiktok streming or you always have lines with them that you dont want to cross?",
-      "Have you ever pretend to like a gift that you actually hated? (Tell us the story)",
-      "What is the worst thing about streaming that u can't remove and you cant go on with it?",
-      "What’s something you pretend not to enjoy but you actually do?",
-      "Have you ever Steal Money from your mother without her knowing?",
-      "What’s something you secretly enjoy about streaming?",
-      "What’s something you’d do if it is not forbidden?",
-      "Tell us a funny/drama/action story that you never told us here before",
-      "Which is the last time you felt jealous and for Who and about What?",
-      "What's the most embarrassing thing you've done in public thinking no one was watching (until you realized they were)?"
-];
-
-    const dares = [
-      "Compliment 5 random people in chat",
-      "Dance with no music for 1 minute",
-      "Pretend you're a news reporter covering your birthday",
-      "Do your best evil villain laugh",
-      "Freeze for the whole battle",
-      "Live as Slow-motion for the whole next battle",
-      "Speak in a flirty tone for the next battle",
-      "Pretend you're late for something important",
-      "Speak in an accent for the next battle",
-      "Flirt with chat like you're in a dramatic romance movie",
-      "Pretend you just saw your crush walk in",
-      "Let the MVP choose a nickname for you and you must respond to it all stream",
-      "Agree with everything the team in chat says for the next battle (no matter how wrong)",
-      "Talk non-stop the whole next battle",
-      "Do the most cringiest face that you can do",
-      "Karaoke Challenge (Sing a song in a different language. Try a funny accent.)",
-      "Ban a Random Word for the next battle and If You Said It, You Get Punished",
-      "Do Whatever the Next First Comment Says",
-      "Read the messages for the next battle in the most dramatic voice possible",
-      "Do an ASMR Segment Chosen by Chat (e.g., whispering, tapping sounds)",
-      "Try to Compliment Every Chat Message for The Whole next battle (No matter what chat says, respond with a compliment.)",
-      "Let Chat Control Your Facial Expressions for The next battle",
-      "Do your best model walk across the room.",
-      "Play the next battle with only saying the MVP name the whole battle",
-      "Pick someone in the chat and rate his pic if he/she have if he is not in the pic then rate him in general",
-      "Call your mom and Sing (If She is sleep, then sing for us)",
-      "Write the MVP name for 3 days in ur bio",
-      "Keep silent the Whole next battle",
-      "Answer everything the chat say by yes or no only",
-      "Stand up and run in all your room like you are racing in marathon"
-];
-
-    const pickups = [
-      "Are you Wi-Fi? Because I’m feeling a connection",
-      "Are you a stream? Because I can’t leave",
-      "Do you believe in love at first chat?",
-      "Are you magic? Because everything else disappears",
-      "Are you a star? Because you light up the stream",
-      "I think my screen froze… oh wait, you’re just stunning",
-      "Are you a keyboard? Because you’re my type",
-      "Is your name Google? Because you have everything I need",
-      "Are you a notification? Because I get excited every time",
-      "Are you a charger? Because I’m dying without you",
-      "Are you sunshine? Because you brighten everything",
-      "Are you a playlist? Because I never skip you",
-      "Are you a level-up? Because you make everything better",
-      "Are you a camera? Because you make me smile",
-      "Are you a meme? Because you make my day",
-      "Are you a filter? Because you improve everything",
-      "Are you coffee? Because I need you daily",
-      "Are you a notification sound? Because I look forward to you",
-      "Are you a playlist shuffle? Because you surprise me",
-      "Are you a notification bell? Because I’ll never ignore you",
-      "Are you a trend? Because everyone loves you",
-      "Are you a cozy stream? Because I feel at home",
-      "Are you a rare drop? Because you’re special",
-      "Are you a highlight? Because I keep replaying you",
-      "Are you a celebration? Because you feel special",
-      "Are you a glow? Because you shine differently",
-      "Are you a streak? Because I don’t want to lose you",
-      "Are you the MVP? Because suddenly I forgot how to act normal",
-      "Are you my sleep schedule? Because I’m about to ruin myself for you",
-      "Are you the reason I’m winning? Because I’m not letting you go"
-];
-
-
-    const wildcards = [
-      "🎁 WILD CARD: Reverse Question — Elizabethix asks the MVP anything 👀",
-      "🎁 WILD CARD: Reverse Dare — Elizabethix gives the MVP a dare 😈",
-      "🎁 WILD CARD: Double Spin — Spin again 😈",
-      "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
-      "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
-      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
-      "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈",
-      "🎁 WILD CARD: Reverse Question — Elizabethix asks the MVP anything 👀",
-      "🎁 WILD CARD: Reverse Dare — Elizabethix gives the MVP a dare 😈",
-      "🎁 WILD CARD: Double Spin — Spin again 😈",
-      "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
-      "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
-      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
-      "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈"
-];
-
-    const WILD_CARD_CHANCE = 0.15; // 8% chance. Rare but exciting.
-    let lastResultWasWild = false;
-    let wildCooldown = 0;
-
-    const meta = {
-      Dare: { letter: "D", icon: "🔥", color: "#ff315b", color2: "#9b001d", array: dares },
-      Truth: { letter: "T", icon: "?", color: "#3454ff", color2: "#24107c", array: truths },
-      Pickup: { letter: "P", icon: "♡", color: "#ffc83d", color2: "#ff8a00", array: pickups }
-    };
-
-    let data = freshData();
-    let mode = "category";
-    let currentCategory = null;
-    let currentWheelItems = categoryItems();
-    let rotation = 0;
-    let spinning = false;
-    let categoryBag = [];
-    let soundOn = true;
-    let musicOn = false;
-    let birthdayUnlocked = false;
-    let firstWheelSpin = true;
-    let hypeTimer = null;
-    let spinTickTimer = null;
-    let audioCtx = null;
-
-    const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const BIRTHDAY_TARGET_MS = Date.UTC(2026, 3, 28, 21, 0, 0);
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v8";
-
-    const canvas = document.getElementById("wheel");
-    const ctx = canvas.getContext("2d");
-    const spinSound = null;
-    const winSound = null;
-    const landingSound = null;
-    const bgMusic = null;
-
-    function freshData() {
-      return { Dare: [...dares], Truth: [...truths], Pickup: [...pickups] };
-    }
-
-    function categoryItems() {
-      const items = [];
-
-      if (data.Dare.length > 0) {
-        items.push({ category: "Dare", main: "DARE", icon: "🔥" });
-      }
-
-      if (data.Truth.length > 0) {
-        items.push({ category: "Truth", main: "TRUTH", icon: "?" });
-      }
-
-      if (data.Pickup.length > 0) {
-        items.push({ category: "Pickup", main: "PICK-UP\nLINES", icon: "♡" });
-      }
-
-      return items;
-    }
-
-    function secretItems(category) {
-      return Array.from({ length: 12 }, (_, i) => ({ category, main: "?", icon: String(i + 1) }));
-    }
-
-    function draw(items) {
-      const size = canvas.width;
-      const center = size / 2;
-      const radius = center - 48;
-      ctx.clearRect(0, 0, size, size);
-
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + 26, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,.72)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,105,220,.92)";
-      ctx.lineWidth = 9;
-      ctx.shadowColor = "#ff42d6";
-      ctx.shadowBlur = 28;
-      ctx.stroke();
-      ctx.restore();
-
-      for (let i = 0; i < items.length; i++) {
-        const start = i * 2 * Math.PI / items.length - Math.PI / 2;
-        const end = (i + 1) * 2 * Math.PI / items.length - Math.PI / 2;
-        const item = items[i];
-        const m = meta[item.category];
-        const grad = ctx.createRadialGradient(center, center, 30, center, center, radius);
-        grad.addColorStop(0, m.color);
-        grad.addColorStop(1, m.color2);
-
-        ctx.beginPath();
-        ctx.moveTo(center, center);
-        ctx.arc(center, center, radius, start, end);
-        ctx.closePath();
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.72)";
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        ctx.save();
-        ctx.translate(center, center);
-        ctx.rotate(start + (end - start) / 2);
-        ctx.textAlign = "center";
-        ctx.fillStyle = item.category === "Pickup" ? "#281100" : "#fff";
-        ctx.shadowColor = "rgba(255,255,255,.8)";
-        ctx.shadowBlur = 9;
-
-        if (mode === "category") {
-          ctx.font = "1000 46px Arial";
-          ctx.fillText(item.icon, radius * .48, -38);
-          ctx.font = "1000 54px Arial";
-          const lines = item.main.split("\n");
-          lines.forEach((line, idx) => ctx.fillText(line, radius * .54, 26 + idx * 54));
-        } else {
-          ctx.font = "1000 72px Arial";
-          ctx.fillText("?", radius * .55, 8);
-          ctx.font = "900 24px Arial";
-          ctx.fillText("SECRET", radius * .55, 52);
-        }
-        ctx.restore();
-      }
-
-      ctx.save();
-      ctx.translate(center, center);
-      for (let i = 0; i < 54; i++) {
-        const a = i * Math.PI * 2 / 54;
-        const x = Math.cos(a) * (radius + 22);
-        const y = Math.sin(a) * (radius + 22);
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = i % 2 ? "#ff42d6" : "#ffd8fa";
-        ctx.shadowColor = "#ff42d6";
-        ctx.shadowBlur = 14;
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
-    function playerName() {
-      return document.getElementById("player").value.trim() || "The MVP";
-    }
-
-    document.getElementById("player").addEventListener("input", () => {
-      const value = document.getElementById("player").value.trim();
-      document.getElementById("mvpName").textContent = value || "?";
-    }); catch (e) {
-        // Never let audio break the game.
-      }
-    } catch (e) {}
-    }
-
-    function startSpinSound() {}
-    function stopSpinSound() {}
-    function playLandingSound() {}
-    function playWinSound() {}
-
-    function play(audio) { return; }
-
-    function refillCategoryBag() {
-      categoryBag = [];
-
-      if (data.Dare.length > 0) categoryBag.push("Dare");
-      if (data.Truth.length > 0) categoryBag.push("Truth");
-      if (data.Pickup.length > 0) categoryBag.push("Pickup");
-
-      // Shuffle the remaining categories.
-      for (let i = categoryBag.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
-      }
-    }
-
-    function getFairCategory() {
-      // Remove categories from the bag if they became empty after previous prompts.
-      categoryBag = categoryBag.filter(category => data[category] && data[category].length > 0);
-
-      if (!categoryBag.length) refillCategoryBag();
-
-      if (!categoryBag.length) return null;
-
-      return categoryBag.pop();
-    }
-
-    function pickedIndexFor(items, forcedIndex = null) {
-      const segment = 360 / items.length;
-      const picked = forcedIndex !== null ? forcedIndex : Math.floor(Math.random() * items.length);
-      const sliceCenter = picked * segment + segment / 2;
-      const targetRotation = (360 - sliceCenter) % 360;
-      const currentRotation = ((rotation % 360) + 360) % 360;
-      const correction = (targetRotation - currentRotation + 360) % 360;
-      rotation += 2160 + correction;
-      return picked;
-    }
-
-    function spin(items, callback, forcedIndex = null) {
-      if (spinning) return;
-      spinning = true;
-      document.getElementById("spinBtn").disabled = true;
-      const index = pickedIndexFor(items, forcedIndex);
-      canvas.style.transform = `rotate(${rotation}deg)`;
-
-      startSpinSound();
-      startHypeText();
-      floatingSpinEmojis();
-
-      setTimeout(() => {
-        spinning = false;
-        document.getElementById("spinBtn").disabled = false;
-        stopSpinSound();
-        playLandingSound();
-        callback(items[index]);
-      }, 6250);
-    }
-
-    function mainSpin() {
-      if (mode === "category") chooseCategory();
-      else revealPrompt();
-    }
-
-    function chooseCategory() {
-      if (firstWheelSpin) {
-        firstWheelSpin = false;
-        openPopup("Birthday Start", "From your team 💜", "We made this night for you. Your team loves you so much. Press Continue, then spin the wheel.", true);
-        return;
-      }
-
-      // Hidden Wild Card check happens BEFORE Truth / Dare / Pick-up is chosen.
-      if (shouldTriggerWildCard()) {
-        triggerWildCard("Surprise");
-        mode = "category";
-        currentCategory = null;
-        currentWheelItems = categoryItems();
-        draw(currentWheelItems);
-        setStepOne();
-        return;
-      }
-
-      mode = "category";
-      currentWheelItems = categoryItems();
-
-      if (!currentWheelItems.length) {
-        openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Use Reset Save only if you want to restart from the beginning.", true);
-        return;
-      }
-
-      draw(currentWheelItems);
-
-      const fairCategory = getFairCategory();
-      if (!fairCategory) {
-        openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Use Reset Save only if you want to restart from the beginning.", true);
-        return;
-      }
-
-      const forcedIndex = currentWheelItems.findIndex(item => item.category === fairCategory);
-
-      spin(currentWheelItems, (picked) => {
-        currentCategory = picked.category;
-        mode = "secret";
-        currentWheelItems = secretItems(currentCategory);
-        draw(currentWheelItems);
-        setStepTwo(currentCategory);
-        openPopup("Category Unlocked", `${meta[currentCategory].letter} • ${currentCategory}`, "Spin again to reveal the hidden fate.", false);
-      }, forcedIndex);
-    }
-
-    function revealPrompt() {
-      if (!currentCategory) return;
-
-      const arr = data[currentCategory];
-      if (!arr.length) {
-        openPopup(currentCategory, playerName(), "No prompts left in this category. Reload the page or Reset Save to play again.", true);
-        return;
-      }
-
-      currentWheelItems = secretItems(currentCategory);
-      draw(currentWheelItems);
-
-      spin(currentWheelItems, () => {
-        lastResultWasWild = false;
-
-        const landedCategory = currentCategory;
-        const itemIndex = Math.floor(Math.random() * arr.length);
-        const text = arr.splice(itemIndex, 1)[0];
-
-        setResult(landedCategory, text);
-        updateCounters();
-        saveGame();
-        celebrate();
-        openPopup(landedCategory, `${playerName()} got:`, text, true);
-
-        mode = "category";
-        currentCategory = null;
-        currentWheelItems = categoryItems();
-
-        setTimeout(() => {
-          if (currentWheelItems.length) {
-            draw(currentWheelItems);
-            setStepOne();
-          } else {
-            setStepOne();
-            openPopup("Game Complete", "All prompts are finished 🎉", "All Truths, Dares, and Pick-up Lines are done. Amazing stream moment.", true);
-          }
-        }, 500);
-      });
-    }
-
-    function setStepOne() {
-      document.getElementById("stepTitle").textContent = "Step 1";
-      document.getElementById("bigCategory").textContent = "Fate";
-      document.getElementById("stepSubtitle").textContent = "Spin to choose T / D / P";
-      document.getElementById("lockIcon").textContent = "🔒";
-      document.getElementById("mysteryText").textContent = "?????";
-      document.getElementById("mysteryText").className = "mystery";
-      document.getElementById("spinBtn").textContent = "Spin The Wheel 🎂";
-      document.getElementById("centerMedal").textContent = "♕";
-    }
-
-    function setStepTwo(category) {
-      document.getElementById("stepTitle").textContent = "Step 2";
-      document.getElementById("bigCategory").textContent = category;
-      document.getElementById("stepSubtitle").textContent = "Spin again to reveal";
-      document.getElementById("lockIcon").textContent = "🔐";
-      document.getElementById("mysteryText").textContent = "?????";
-      document.getElementById("mysteryText").className = "mystery";
-      document.getElementById("spinBtn").textContent = "Reveal Fate ✨";
-      document.getElementById("centerMedal").textContent = meta[category].icon;
-    }
-
-    function setResult(category, text) {
-      document.getElementById("stepTitle").textContent = "Result";
-      document.getElementById("bigCategory").textContent = category;
-      document.getElementById("stepSubtitle").textContent = `${playerName()} got:`;
-      document.getElementById("lockIcon").textContent = "✨";
-      const mystery = document.getElementById("mysteryText");
-      mystery.textContent = text;
-      mystery.className = "result-text-inline";
-    }
-
-    function openPopup(type, player, text, finalResult) {
-      document.getElementById("popupType").textContent = type;
-      document.getElementById("popupType").style.color = meta[type]?.color || "#ff42d6";
-      document.getElementById("popupPlayer").textContent = player;
-      document.getElementById("popupText").textContent = text;
-      document.getElementById("popup").style.display = "grid";
-      play(winSound);
-
-      if (finalResult) {
-        celebrate();
-        categoryGlow(type);
-        crownDrop();
-        emojiBurst(type);
-      }
-    }
-
-    function closePopup() {
-      const popup = document.getElementById("popup");
-      popup.style.display = "none";
-      popup.classList.remove("wild-card-mode");
-    }
-
-    function showFinalMessage() {
-      document.getElementById("popupType").textContent = "Final Message";
-      document.getElementById("popupType").style.color = "#ff42d6";
-      document.getElementById("popupPlayer").textContent = "From your team 💜";
-      document.getElementById("popupText").innerHTML =
-        '<div class="team-final-message">Happy Birthday Elizabethix 💜<br>Your team loves you so much.<br>Thank you for being you ✨</div>';
-      document.getElementById("popup").style.display = "grid";
-      celebrate();
-      crownDrop();
-      emojiBurst("Truth");
-      play(winSound);
-    }
-
-    function saveGame() {
-      const saveData = {
-        Dare: data.Dare,
-        Truth: data.Truth,
-        Pickup: data.Pickup,
-        savedAt: new Date().toISOString()
-      };
-
-      try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        updateSaveNote();
-      } catch (e) {
-        console.warn("Could not save game progress:", e);
-      }
-    }
-
-    function loadGame() {
-      try {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) return;
-
-        const saved = JSON.parse(raw);
-
-        if (
-          Array.isArray(saved.Dare) &&
-          Array.isArray(saved.Truth) &&
-          Array.isArray(saved.Pickup)
-        ) {
-          data = {
-            Dare: saved.Dare,
-            Truth: saved.Truth,
-            Pickup: saved.Pickup
-          };
-        }
-      } catch (e) {
-        console.warn("Could not load saved game progress:", e);
-      }
-    }
-
-    function updateSaveNote() {
-      const note = document.getElementById("saveNote");
-      if (!note) return;
-
-      const left = data.Dare.length + data.Truth.length + data.Pickup.length;
-      const used = 90 - left;
-      note.textContent = `Progress saved on this device • ${used} used / ${left} left`;
-    }
-
-    function resetSavedGame() {
-      const ok = confirm("Reset saved progress and restore all 90 prompts?");
-      if (!ok) return;
-
-      localStorage.removeItem(SAVE_KEY);
-      data = freshData();
-      mode = "category";
-      currentCategory = null;
-      currentWheelItems = categoryItems();
-      firstWheelSpin = true;
-      categoryBag = [];
-      lastResultWasWild = false;
-      wildCooldown = 0;
-
-      updateCounters();
-      updateSaveNote();
-      setStepOne();
-      draw(currentWheelItems);
-      openPopup("Game Reset", "All prompts restored", "The wheel is ready from the beginning again.", false);
-    }
-
-    function updateCounters() {
-      document.getElementById("dareLeft").textContent = data.Dare.length;
-      document.getElementById("truthLeft").textContent = data.Truth.length;
-      document.getElementById("pickupLeft").textContent = data.Pickup.length;
-      document.getElementById("dareMeter").style.width = (data.Dare.length / 30 * 100) + "%";
-      document.getElementById("truthMeter").style.width = (data.Truth.length / 30 * 100) + "%";
-      document.getElementById("pickupMeter").style.width = (data.Pickup.length / 30 * 100) + "%";
-      updateSaveNote();
-    }
-
-    function toggleSound() { alert("Music is disabled for stability tonight."); }
-
-    function celebrate() {
-      const layer = document.getElementById("confettiLayer");
-      const colors = ["#ff42d6", "#ff7bea", "#9b5cff", "#3454ff", "#ffc83d", "#ffffff"];
-      for (let i = 0; i < 90; i++) {
-        const piece = document.createElement("div");
-        piece.className = "confetti";
-        piece.style.left = Math.random() * 100 + "%";
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = Math.random() * .4 + "s";
-        piece.style.animationDuration = 1.3 + Math.random() * 1.7 + "s";
-        layer.appendChild(piece);
-        setTimeout(() => piece.remove(), 3400);
-      }
-    }
-
-    function floatingSpinEmojis() {
-      const emojis = ["🎂", "🎈", "✨", "💜", "👀", "🎉"];
-      for (let i = 0; i < 18; i++) {
-        setTimeout(() => {
-          const e = document.createElement("div");
-          e.className = "emoji-pop";
-          e.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-          e.style.left = 42 + Math.random() * 16 + "%";
-          e.style.top = 42 + Math.random() * 16 + "%";
-          e.style.setProperty("--x", (Math.random() * 420 - 210) + "px");
-          e.style.setProperty("--y", (Math.random() * 320 - 160) + "px");
-          e.style.setProperty("--r", (Math.random() * 520 - 260) + "deg");
-          document.body.appendChild(e);
-          setTimeout(() => e.remove(), 1400);
-        }, i * 130);
-      }
-    }
-
-    function emojiBurst(type) {
-      const map = {
-        Dare: ["🔥", "😈", "🎉", "💥", "🎂"],
-        Truth: ["👀", "💜", "✨", "❓", "🎂"],
-        Pickup: ["💛", "💘", "✨", "😍", "🎂"]
-      };
-      const emojis = map[type] || ["🎉", "✨", "🎂"];
-      for (let i = 0; i < 34; i++) {
-        const e = document.createElement("div");
-        e.className = "emoji-pop";
-        e.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        e.style.setProperty("--x", (Math.random() * 760 - 380) + "px");
-        e.style.setProperty("--y", (Math.random() * 520 - 260) + "px");
-        e.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
-        document.body.appendChild(e);
-        setTimeout(() => e.remove(), 1500);
-      }
-    }
-
-    function categoryGlow(type) {
-      const glow = document.createElement("div");
-      glow.className = "category-glow";
-      glow.style.setProperty("--glowColor", meta[type]?.color || "#ff42d6");
-      document.body.appendChild(glow);
-      setTimeout(() => glow.remove(), 1500);
-    }
-
-    function crownDrop() {
-      const crown = document.createElement("div");
-      crown.className = "crown-drop";
-      crown.textContent = "👑";
-      document.body.appendChild(crown);
-      setTimeout(() => crown.remove(), 1600);
-    }
-
-    function startHypeText() {
-      const lines = [
-        "Chat is watching 👀",
-        "No escape now…",
-        "Birthday fate is choosing ✨",
-        "The wheel knows everything…",
-        "This might be spicy 😈",
-        "Elizabethix energy rising 💜"
-      ];
-      const box = document.getElementById("revealBox");
-      const lockIcon = document.getElementById("lockIcon");
-      const mysteryText = document.getElementById("mysteryText");
-      box.classList.add("hype");
-      hypeTimer = setInterval(() => {
-        lockIcon.textContent = "🎡";
-        mysteryText.textContent = lines[Math.floor(Math.random() * lines.length)];
-        mysteryText.className = "result-text-inline";
-      }, 650);
-    }
-
-    function stopHypeText() {
-      clearInterval(hypeTimer);
-      hypeTimer = null;
-      document.getElementById("revealBox").classList.remove("hype");
-    }
-
-
-    function createBirthdayRain() {
-      const rain = document.getElementById("birthdayRain");
-      if (!rain) return;
-
-      const items = ["🎉", "🎈", "✨", "💜", "🎂", "👑", "🎁"];
-      for (let i = 0; i < 34; i++) {
-        const s = document.createElement("span");
-        s.textContent = items[Math.floor(Math.random() * items.length)];
-        s.style.left = Math.random() * 100 + "%";
-        s.style.animationDuration = (9 + Math.random() * 10) + "s";
-        s.style.animationDelay = (Math.random() * 10) + "s";
-        rain.appendChild(s);
-      }
-    }
-
-    function createSparkles() {
-      const wrap = document.getElementById("sparkles");
-      for (let i = 0; i < 72; i++) {
-        const s = document.createElement("span");
-        s.style.left = Math.random() * 100 + "%";
-        s.style.animationDuration = 5 + Math.random() * 9 + "s";
-        s.style.animationDelay = Math.random() * 9 + "s";
-        s.style.opacity = Math.random() * .7 + .2;
-        wrap.appendChild(s);
-      }
-    }
-
-    function getKyivParts(date = new Date()) {
-      const formatter = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Kyiv",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      });
-
-      const parts = {};
-      formatter.formatToParts(date).forEach(part => {
-        if (part.type !== "literal") parts[part.type] = part.value;
-      });
-
-      return {
-        year: Number(parts.year),
-        month: Number(parts.month),
-        day: Number(parts.day),
-        hour: Number(parts.hour),
-        minute: Number(parts.minute),
-        second: Number(parts.second)
-      };
-    }
-
-    function getKyivNow() {
-      return new Date();
-    }
-
-    function getKyivTarget() {
-      return new Date(BIRTHDAY_TARGET_MS);
-    }
-
-    function pad(num) {
-      return String(num).padStart(2, "0");
-    }
-
-    function updateCountdown() {
-      const diff = BIRTHDAY_TARGET_MS - Date.now();
-
-      if (diff > 0) {
-        birthdayUnlocked = false;
-
-        const days = Math.floor(diff / 86400000);
-        const hours = Math.floor((diff % 86400000) / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-
-        const d = document.getElementById("days");
-        const h = document.getElementById("hours");
-        const m = document.getElementById("minutes");
-        const s = document.getElementById("seconds");
-
-        if (d) d.textContent = pad(days);
-        if (h) h.textContent = pad(hours);
-        if (m) m.textContent = pad(minutes);
-        if (s) s.textContent = pad(seconds);
-
-        const note = document.getElementById("countNote");
-        if (note) note.textContent = "Target: April 29 • 00:00 Kyiv time 🇺🇦";
-
-        const splash = document.getElementById("finalCountdownSplash");
-        const finalNumber = document.getElementById("finalCountdownNumber");
-
-        if (splash && finalNumber && days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
-          splash.classList.add("show");
-          finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
-        } else if (splash) {
-          splash.classList.remove("show");
-        }
-
-        return;
-      }
-
-      if (!birthdayUnlocked) unlockBirthdayScreen();
-    }
-
-    function unlockBirthdayScreen() {
-      if (birthdayUnlocked) return;
-      birthdayUnlocked = true;
-
-      const splash = document.getElementById("finalCountdownSplash");
-      if (splash) splash.classList.remove("show");
-
-      const tagline = document.getElementById("introTagline");
-      if (tagline) tagline.textContent = "Happy Birthday!";
-
-      const msg = document.getElementById("introMessage");
-      if (msg) {
-        msg.innerHTML = '<span>It is officially your birthday 💜</span><span>Tonight is YOUR night ✨</span><span>Your team loves you so much.</span>';
-      }
-
-      const wrap = document.getElementById("countdownWrap");
-      if (wrap) {
-        wrap.innerHTML = '<div class="count-box" style="grid-column: 1 / -1;"><span class="count-number">🎉</span><span class="count-label">Happy Birthday Elizabethix</span></div>';
-      }
-
-      const note = document.getElementById("countNote");
-      if (note) note.textContent = "The birthday wheel is unlocked 🎡";
-
-      const btn = document.getElementById("enterButton");
-      if (btn) {
-        btn.textContent = "Enter the Birthday Wheel 💜";
-        btn.onclick = startApp;
-      }
-
-      try { celebrate(); crownDrop(); } catch(e) {}
-    }
-
-    function showMidnightFreeze() {
-      const freeze = document.createElement("div");
-      freeze.className = "midnight-freeze";
-      freeze.innerHTML = "<div>00:00<br>HAPPY BIRTHDAY 💜</div>";
-      document.body.appendChild(freeze);
-      setTimeout(() => freeze.remove(), 1300);
-    }
-
-    function startApp() {
-      const intro = document.getElementById("intro");
-      const splash = document.getElementById("finalCountdownSplash");
-
-      if (splash) splash.classList.remove("show");
-      if (intro) {
-        intro.classList.add("hidden");
-        intro.style.display = "none";
-      }
-
-      mode = "category";
-      currentCategory = null;
-      currentWheelItems = categoryItems();
-
-      if (currentWheelItems && currentWheelItems.length) {
-        draw(currentWheelItems);
-      }
-
-      setStepOne();
-    }
-    }
-
-    function initApp() {
-      try {
-        if (typeof createBirthdayRain === "function") createBirthdayRain();
-        if (typeof createSparkles === "function") createSparkles();
-        if (typeof loadGame === "function") loadGame();
-        if (typeof updateCounters === "function") updateCounters();
-        if (typeof draw === "function") draw(currentWheelItems);
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-      } catch (e) {
-        console.error("Init error:", e);
-        const btn = document.getElementById("enterButton");
-        if (btn) btn.onclick = startApp;
-      }
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initApp);
-    } else {
-      initApp();
-    }
-  </script>
+<script>
+const TRUTHS = ["What’s a secret you’ve never told your parents?", "What is the most embarrassing thing you remember that happened with you?", "Tell us a name and some information of a person you hate so much in your life", "Have you ever liked someone and acted completely normal (but actually panicking)?", "Tell us something that you told us here but it was lie", "Do you still have feelings to your exes?", "What’s the last lie you told?", "Tell the Mvp of this battle What is the most thing you love about him", "Have you ever stalked the Mvp profile?", "What’s the dumbest thing you believed as a kid for way too long?", "What is the strangest or most embarrassing thing you've ever searched for using an AI?", "What’s a lie you tell all the time that people still believe?", "What’s your most toxic thing in your personality?", "Scale from 1 to 10 villain in your personality", "What is true love means to you?", "Have you took the first step with a crush before him?", "Who here do you think would survive the longest in a zombie apocalypse? and Why?", "What’s something people always misunderstand about you?", "What was the most moment that you were very angry in your streaming career?", "Would you travel another country with someone from the team?", "Do you think u can have real friends through tiktok streming or you always have lines with them that you dont want to cross?", "Have you ever pretend to like a gift that you actually hated? (Tell us the story)", "What is the worst thing about streaming that u can't remove and you cant go on with it?", "What’s something you pretend not to enjoy but you actually do?", "Have you ever Steal Money from your mother without her knowing?", "What’s something you secretly enjoy about streaming?", "What’s something you’d do if it is not forbidden?", "Tell us a funny/drama/action story that you never told us here before", "Which is the last time you felt jealous and for Who and about What?", "What's the most embarrassing thing you've done in public thinking no one was watching (until you realized they were)?"];
+const DARES = ["Compliment 5 random people in chat", "Dance with no music for 1 minute", "Pretend you're a news reporter covering your birthday", "Do your best evil villain laugh", "Freeze for the whole battle", "Live as Slow-motion for the whole next battle", "Speak in a flirty tone for the next battle", "Pretend you're late for something important", "Speak in an accent for the next battle", "Flirt with chat like you're in a dramatic romance movie", "Pretend you just saw your crush walk in", "Let the MVP choose a nickname for you and you must respond to it all stream", "Agree with everything the team in chat says for the next battle (no matter how wrong)", "Talk non-stop the whole next battle", "Do the most cringiest face that you can do", "Karaoke Challenge (Sing a song in a different language. Try a funny accent.)", "Ban a Random Word for the next battle and If You Said It, You Get Punished", "Do Whatever the Next First Comment Says", "Read the messages for the next battle in the most dramatic voice possible", "Do an ASMR Segment Chosen by Chat (e.g., whispering, tapping sounds)", "Try to Compliment Every Chat Message for The Whole next battle (No matter what chat says, respond with a compliment.)", "Let Chat Control Your Facial Expressions for The next battle", "Do your best model walk across the room.", "Play the next battle with only saying the MVP name the whole battle", "Pick someone in the chat and rate his pic if he/she have if he is not in the pic then rate him in general", "Call your mom and Sing (If She is sleep, then sing for us)", "Write the MVP name for 3 days in ur bio", "Keep silent the Whole next battle", "Answer everything the chat say by yes or no only", "Stand up and run in all your room like you are racing in marathon"];
+const PICKUPS = ["Are you Wi-Fi? Because I’m feeling a connection", "Are you a stream? Because I can’t leave", "Do you believe in love at first chat?", "Are you magic? Because everything else disappears", "Are you a star? Because you light up the stream", "I think my screen froze… oh wait, you’re just stunning", "Are you a keyboard? Because you’re my type", "Is your name Google? Because you have everything I need", "Are you a notification? Because I get excited every time", "Are you a charger? Because I’m dying without you", "Are you sunshine? Because you brighten everything", "Are you a playlist? Because I never skip you", "Are you a level-up? Because you make everything better", "Are you a camera? Because you make me smile", "Are you a meme? Because you make my day", "Are you a filter? Because you improve everything", "Are you coffee? Because I need you daily", "Are you a notification sound? Because I look forward to you", "Are you a playlist shuffle? Because you surprise me", "Are you a notification bell? Because I’ll never ignore you", "Are you a trend? Because everyone loves you", "Are you a cozy stream? Because I feel at home", "Are you a rare drop? Because you’re special", "Are you a highlight? Because I keep replaying you", "Are you a celebration? Because you feel special", "Are you a glow? Because you shine differently", "Are you a streak? Because I don’t want to lose you", "Are you the MVP? Because suddenly I forgot how to act normal", "Are you my sleep schedule? Because I’m about to ruin myself for you", "Are you the reason I’m winning? Because I’m not letting you go"];
+const WILDS = ["Reverse Question — Elizabethix asks the MVP anything 👀", "Reverse Dare — Elizabethix gives the MVP a dare 😈", "Double Spin — Spin again 😈", "Lucky Save — You’re safe this round… lucky you 🍀", "Double Trouble — Do TWO actions: this wild card + one more spin 💥", "FORCE_DARE", "FORCE_TRUTH", "Power Move — Elizabethix decides what happens this round 😈", "Reverse Question — Elizabethix asks the MVP anything 👀", "Reverse Dare — Elizabethix gives the MVP a dare 😈", "Double Spin — Spin again 😈", "Lucky Save — You’re safe this round… lucky you 🍀", "Double Trouble — Do TWO actions: this wild card + one more spin 💥", "FORCE_DARE", "FORCE_TRUTH", "Power Move — Elizabethix decides what happens this round 😈"];
+
+const SAVE_KEY = "elizabethix_clean_final_v1";
+const TARGET_MS = Date.UTC(2026, 3, 28, 21, 0, 0); // April 29 00:00 Kyiv
+
+let data = loadData();
+let rotation = 0;
+let spinning = false;
+let mode = "category";
+let currentCategory = null;
+let currentItems = [];
+let categoryBag = [];
+let wildCooldown = 0;
+let firstSpin = true;
+
+const meta = {
+  Dare: { color:"#c9002b", color2:"#ff315b", icon:"🔥", label:"DARE" },
+  Truth: { color:"#121494", color2:"#3454ff", icon:"?", label:"TRUTH" },
+  Pickup: { color:"#ff9900", color2:"#ffd86a", icon:"♡", label:"PICK-UP\nLINES" }
+};
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+
+function pad(n) { return String(n).padStart(2, "0"); }
+
+function freshData() {
+  return { Truth:[...TRUTHS], Dare:[...DARES], Pickup:[...PICKUPS] };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return freshData();
+    const saved = JSON.parse(raw);
+    if (Array.isArray(saved.Truth) && Array.isArray(saved.Dare) && Array.isArray(saved.Pickup)) return saved;
+  } catch(e) {}
+  return freshData();
+}
+
+function saveData() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
+  updateCounters();
+}
+
+function updateCountdown() {
+  const diff = TARGET_MS - Date.now();
+  if (diff <= 0) {
+    showBirthdayUnlocked();
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  document.getElementById("days").textContent = pad(days);
+  document.getElementById("hours").textContent = pad(hours);
+  document.getElementById("minutes").textContent = pad(minutes);
+  document.getElementById("seconds").textContent = pad(seconds);
+}
+
+function showBirthdayUnlocked() {
+  document.getElementById("introTagline").textContent = "Happy Birthday!";
+  document.getElementById("introMessage").innerHTML = "It is officially your birthday 💜<br>Tonight is YOUR night ✨<br>Your team loves you so much.";
+  document.getElementById("countdownWrap").innerHTML = '<div class="count-box" style="grid-column:1/-1"><div><span class="num">🎉</span><span class="label">Happy Birthday Elizabethix</span></div></div>';
+  document.getElementById("countNote").textContent = "The birthday wheel is unlocked 🎡";
+}
+
+function startApp() {
+  document.getElementById("intro").classList.add("hidden");
+  currentItems = categoryItems();
+  drawWheel(currentItems);
+  setStepOne();
+}
+
+function categoryItems() {
+  const items = [];
+  if (data.Dare.length) items.push({category:"Dare", text:"DARE", icon:"🔥"});
+  if (data.Truth.length) items.push({category:"Truth", text:"TRUTH", icon:"?"});
+  if (data.Pickup.length) items.push({category:"Pickup", text:"PICK-UP\nLINES", icon:"♡"});
+  return items;
+}
+
+function refillBag() {
+  categoryBag = categoryItems().map(x => x.category);
+  for (let i = categoryBag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [categoryBag[i], categoryBag[j]] = [categoryBag[j], categoryBag[i]];
+  }
+}
+
+function getFairCategory() {
+  categoryBag = categoryBag.filter(c => data[c] && data[c].length);
+  if (!categoryBag.length) refillBag();
+  return categoryBag.pop() || null;
+}
+
+function drawWheel(items) {
+  ctx.clearRect(0,0,900,900);
+  if (!items.length) return;
+  const cx = 450, cy = 450, r = 380;
+  items.forEach((item, i) => {
+    const start = -Math.PI/2 + i * Math.PI*2/items.length;
+    const end = -Math.PI/2 + (i+1) * Math.PI*2/items.length;
+    const m = meta[item.category];
+    const grad = ctx.createRadialGradient(cx,cy,40,cx,cy,r);
+    grad.addColorStop(0, m.color2);
+    grad.addColorStop(1, m.color);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,end); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth=5; ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(start + (end-start)/2);
+    ctx.textAlign="center";
+    ctx.fillStyle = item.category === "Pickup" ? "#231000" : "white";
+    ctx.shadowColor="white"; ctx.shadowBlur=8;
+    ctx.font="1000 48px Arial";
+    item.text.split("\n").forEach((line, idx) => ctx.fillText(line, r*.55, idx*52));
+    ctx.font="1000 42px Arial";
+    ctx.fillText(item.icon, r*.47, 76);
+    ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,r+22,0,Math.PI*2); ctx.strokeStyle="#ff42d6"; ctx.lineWidth=12; ctx.shadowColor="#ff42d6"; ctx.shadowBlur=25; ctx.stroke(); ctx.shadowBlur=0;
+}
+
+function spin(items, cb, forcedIndex=null) {
+  if (spinning || !items.length) return;
+  spinning = true;
+  document.getElementById("spinBtn").disabled = true;
+  const index = forcedIndex !== null ? forcedIndex : Math.floor(Math.random()*items.length);
+  const seg = 360/items.length;
+  const sliceCenter = index*seg + seg/2;
+  const target = (360 - sliceCenter) % 360;
+  const current = ((rotation%360)+360)%360;
+  const correction = (target-current+360)%360;
+  rotation += 2160 + correction;
+  canvas.style.transform = `rotate(${rotation}deg)`;
+  setTimeout(() => {
+    spinning = false;
+    document.getElementById("spinBtn").disabled = false;
+    cb(items[index]);
+  }, 5900);
+}
+
+function shouldWild() {
+  if (wildCooldown > 0) { wildCooldown--; return false; }
+  return Math.random() < 0.15;
+}
+
+function randomWild() { return WILDS[Math.floor(Math.random()*WILDS.length)]; }
+
+function mainSpin() {
+  if (mode === "category") chooseCategory();
+  else revealPrompt();
+}
+
+function chooseCategory() {
+  if (firstSpin) {
+    firstSpin = false;
+    openPopup("Birthday Start", "From your team 💜", "We made this night for you. Your team loves you so much. Press Continue, then spin the wheel.");
+    return;
+  }
+
+  if (shouldWild()) {
+    wildCooldown = 2;
+    triggerWild();
+    return;
+  }
+
+  currentItems = categoryItems();
+  if (!currentItems.length) {
+    openPopup("Game Complete", "All prompts finished 🎉", "All Truths, Dares, and Pick-up Lines are done.");
+    return;
+  }
+  const cat = getFairCategory();
+  const idx = currentItems.findIndex(x => x.category === cat);
+  drawWheel(currentItems);
+  spin(currentItems, picked => {
+    currentCategory = picked.category;
+    mode = "reveal";
+    setStepTwo(currentCategory);
+    drawSecretWheel(currentCategory);
+    openPopup("Category Unlocked", currentCategory, "Spin again to reveal the hidden fate.");
+  }, idx);
+}
+
+function drawSecretWheel(cat) {
+  const items = Array.from({length: 12}, () => ({category:cat, text:"?", icon:""}));
+  drawWheel(items);
+}
+
+function revealPrompt() {
+  if (!currentCategory || !data[currentCategory].length) {
+    mode = "category";
+    currentItems = categoryItems();
+    drawWheel(currentItems);
+    setStepOne();
+    return;
+  }
+  const secret = Array.from({length: 12}, () => ({category:currentCategory, text:"?", icon:""}));
+  spin(secret, () => {
+    const arr = data[currentCategory];
+    const i = Math.floor(Math.random()*arr.length);
+    const text = arr.splice(i,1)[0];
+    saveData();
+    showResult(currentCategory, text);
+    openPopup(currentCategory, playerName() + " got:", text);
+    mode = "category";
+    currentCategory = null;
+    currentItems = categoryItems();
+    setTimeout(() => {
+      if (currentItems.length) { drawWheel(currentItems); setStepOne(); }
+      else openPopup("Game Complete", "All prompts finished 🎉", "Amazing stream moment.");
+    }, 400);
+  });
+}
+
+function pullFrom(cat) {
+  if (!data[cat] || !data[cat].length) {
+    const rem = ["Dare","Truth","Pickup"].filter(c => data[c].length);
+    if (!rem.length) return null;
+    cat = rem[Math.floor(Math.random()*rem.length)];
+  }
+  const arr = data[cat];
+  const i = Math.floor(Math.random()*arr.length);
+  const text = arr.splice(i,1)[0];
+  saveData();
+  return {cat,text};
+}
+
+function triggerWild() {
+  let w = randomWild();
+  let title = "🎁 WILD CARD";
+  let text = w;
+  if (w === "FORCE_DARE") {
+    const p = pullFrom("Dare");
+    text = p ? "FORCE DARE 🔥\n\n" + p.text : "No prompts left.";
+  } else if (w === "FORCE_TRUTH") {
+    const p = pullFrom("Truth");
+    text = p ? "FORCE TRUTH 👀\n\n" + p.text : "No prompts left.";
+  }
+  showResult("Wild", text);
+  openPopup(title, playerName() + " unlocked a surprise:", text);
+  mode = "category";
+  currentCategory = null;
+  currentItems = categoryItems();
+  drawWheel(currentItems);
+  setStepOne();
+}
+
+function setStepOne() {
+  document.getElementById("stepTitle").textContent="STEP 1";
+  document.getElementById("bigCategory").textContent="FATE";
+  document.getElementById("stepSubtitle").textContent="Spin to choose T / D / P";
+  document.getElementById("lockIcon").textContent="🔒";
+  document.getElementById("mysteryText").textContent="?????";
+  document.getElementById("centerMedal").textContent="👑";
+}
+
+function setStepTwo(cat) {
+  document.getElementById("stepTitle").textContent="STEP 2";
+  document.getElementById("bigCategory").textContent=cat;
+  document.getElementById("stepSubtitle").textContent="Spin again to reveal";
+  document.getElementById("lockIcon").textContent="🔐";
+  document.getElementById("mysteryText").textContent="?????";
+  document.getElementById("centerMedal").textContent=meta[cat].icon;
+}
+
+function showResult(cat,text) {
+  document.getElementById("stepTitle").textContent="RESULT";
+  document.getElementById("bigCategory").textContent=cat;
+  document.getElementById("stepSubtitle").textContent=playerName()+" got:";
+  document.getElementById("lockIcon").textContent="✨";
+  document.getElementById("mysteryText").textContent=text;
+  confetti();
+}
+
+function playerName() { return document.getElementById("player").value.trim() || "The MVP"; }
+
+document.getElementById("player").addEventListener("input", () => {
+  document.getElementById("mvpName").textContent = document.getElementById("player").value.trim() || "?";
+});
+
+function openPopup(type, player, text) {
+  document.getElementById("popupType").textContent=type;
+  document.getElementById("popupPlayer").textContent=player;
+  document.getElementById("popupText").textContent=text;
+  document.getElementById("popup").style.display="grid";
+}
+
+function closePopup() { document.getElementById("popup").style.display="none"; }
+
+function updateCounters() {
+  document.getElementById("dareLeft").textContent=data.Dare.length;
+  document.getElementById("truthLeft").textContent=data.Truth.length;
+  document.getElementById("pickupLeft").textContent=data.Pickup.length;
+  document.getElementById("dareBar").style.width=(data.Dare.length/30*100)+"%";
+  document.getElementById("truthBar").style.width=(data.Truth.length/30*100)+"%";
+  document.getElementById("pickupBar").style.width=(data.Pickup.length/30*100)+"%";
+  const left = data.Dare.length + data.Truth.length + data.Pickup.length;
+  document.getElementById("saveNote").textContent = `Progress saved • ${90-left} used / ${left} left`;
+}
+
+function resetSavedGame() {
+  if (!confirm("Reset all prompts?")) return;
+  localStorage.removeItem(SAVE_KEY);
+  data = freshData();
+  categoryBag = [];
+  mode = "category";
+  currentCategory = null;
+  currentItems = categoryItems();
+  saveData();
+  drawWheel(currentItems);
+  setStepOne();
+}
+
+function confetti() {
+  const colors=["#ff42d6","#ffd86a","#8d2dff","#fff","#ff315b"];
+  for(let i=0;i<70;i++) {
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"%";
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay=Math.random()*.35+"s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2200);
+  }
+}
+
+function init() {
+  updateCounters();
+  currentItems = categoryItems();
+  drawWheel(currentItems);
+  setStepOne();
+  updateCountdown();
+  setInterval(updateCountdown,1000);
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();
+</script>
 </body>
 </html>
