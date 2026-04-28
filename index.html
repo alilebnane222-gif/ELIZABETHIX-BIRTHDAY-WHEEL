@@ -1868,6 +1868,8 @@
       currentWheelItems = categoryItems();
       firstWheelSpin = true;
       categoryBag = [];
+      lastResultWasWild = false;
+      wildCooldown = 0;
 
       updateCounters();
       updateSaveNote();
@@ -2038,36 +2040,49 @@
     }
 
     function updateCountdown() {
-      if (birthdayUnlocked) return;
-
       const now = getKyivNow();
       const target = getKyivTarget();
       const diff = target - now;
 
-      if (diff <= 0) {
-        unlockBirthdayScreen();
+      // If the birthday time has not arrived yet, countdown must always keep running.
+      // This prevents Reset Save or old state from freezing the timer.
+      if (diff > 0) {
+        birthdayUnlocked = false;
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        const d = document.getElementById("days");
+        const h = document.getElementById("hours");
+        const m = document.getElementById("minutes");
+        const s = document.getElementById("seconds");
+
+        if (d) d.textContent = pad(days);
+        if (h) h.textContent = pad(hours);
+        if (m) m.textContent = pad(minutes);
+        if (s) s.textContent = pad(seconds);
+
+        const splash = document.getElementById("finalCountdownSplash");
+        const finalNumber = document.getElementById("finalCountdownNumber");
+
+        if (days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
+          splash.classList.add("show");
+          finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
+          document.getElementById("introTagline").textContent = "Birthday starts in...";
+        } else {
+          splash.classList.remove("show");
+          const tag = document.getElementById("introTagline");
+          if (tag && tag.textContent !== "Birthday Countdown") tag.textContent = "Birthday Countdown";
+        }
+
         return;
       }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      document.getElementById("days").textContent = pad(days);
-      document.getElementById("hours").textContent = pad(hours);
-      document.getElementById("minutes").textContent = pad(minutes);
-      document.getElementById("seconds").textContent = pad(seconds);
-
-      const splash = document.getElementById("finalCountdownSplash");
-      const finalNumber = document.getElementById("finalCountdownNumber");
-
-      if (days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
-        splash.classList.add("show");
-        finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
-        document.getElementById("introTagline").textContent = "Birthday starts in...";
-      } else {
-        splash.classList.remove("show");
+      // Birthday time arrived.
+      if (!birthdayUnlocked) {
+        unlockBirthdayScreen();
       }
     }
 
@@ -2121,13 +2136,17 @@
     }
     }
 
-    createBirthdayRain();
-    createSparkles();
-    loadGame();
-    updateCounters();
-    draw(currentWheelItems);
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    function initApp() {
+      if (typeof createBirthdayRain === "function") createBirthdayRain();
+      createSparkles();
+      loadGame();
+      updateCounters();
+      draw(currentWheelItems);
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    }
+
+    initApp();
   </script>
 </body>
 </html>
