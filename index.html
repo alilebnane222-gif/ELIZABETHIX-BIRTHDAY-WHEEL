@@ -949,42 +949,6 @@
     /* 🎂 BIRTHDAY MODE VISUAL UPGRADE */
     /* =============================== */
 
-    .birthday-mode-layer {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .birthday-mode-layer::before {
-      content: "";
-      position: absolute;
-      inset: -12%;
-      background:
-        radial-gradient(circle at 18% 22%, rgba(255, 216, 106, .26), transparent 18%),
-        radial-gradient(circle at 82% 20%, rgba(255, 125, 224, .30), transparent 20%),
-        radial-gradient(circle at 50% 72%, rgba(255, 183, 216, .22), transparent 30%),
-        radial-gradient(circle at 50% 42%, rgba(255, 66, 214, .16), transparent 36%);
-      filter: blur(18px);
-      animation: birthdayGlowMove 10s ease-in-out infinite alternate;
-    }
-
-    .birthday-mode-layer::after {
-      content: "🎂  🎉  🎈  ✨  💜  👑  🎁";
-      position: absolute;
-      left: -10%;
-      right: -10%;
-      top: 8%;
-      font-size: clamp(22px, 3vw, 42px);
-      letter-spacing: clamp(16px, 5vw, 80px);
-      white-space: nowrap;
-      opacity: .14;
-      text-align: center;
-      filter: drop-shadow(0 0 12px rgba(255, 140, 230, .85));
-      animation: birthdayEmojiDrift 18s linear infinite;
-    }
-
     .birthday-rain {
       position: fixed;
       inset: 0;
@@ -1097,16 +1061,6 @@
       z-index: 1;
     }
 
-    @keyframes birthdayGlowMove {
-      from { transform: translate(-18px, -8px) scale(1); }
-      to { transform: translate(22px, 18px) scale(1.08); }
-    }
-
-    @keyframes birthdayEmojiDrift {
-      from { transform: translateX(-8%); }
-      to { transform: translateX(8%); }
-    }
-
     @keyframes birthdayRainFall {
       from { transform: translateY(-12vh) rotate(0deg); opacity: 0; }
       15% { opacity: .45; }
@@ -1146,6 +1100,44 @@
       }
     }
 
+
+    /* FINAL FIX: remove weird curved overlay line near the wheel */
+    .birthday-mode-layer,
+    .birthday-mode-layer::before,
+    .birthday-mode-layer::after,
+    .birthday-orbit,
+    .birthday-orbit::before,
+    .birthday-orbit::after {
+      display: none !important;
+      content: none !important;
+      opacity: 0 !important;
+    }
+
+    .wheel-panel {
+      isolation: isolate;
+      overflow: hidden !important;
+    }
+
+    .wheel-wrap {
+      z-index: 5;
+    }
+
+    canvas {
+      position: relative;
+      z-index: 6;
+    }
+
+
+    .wheel-panel::after,
+    .wheel-panel > *::before {
+      pointer-events: none;
+    }
+
+    .wheel-panel.panel::before {
+      display: none !important;
+      content: none !important;
+    }
+
     .hidden { display: none !important; }
 
     @media (max-width: 660px) {
@@ -1160,7 +1152,6 @@
 
 <body>
   <div class="birthday-bg"></div>
-  <div class="birthday-mode-layer"></div>
   <div class="birthday-big-corner left">🎂</div>
   <div class="birthday-big-corner right">🎁</div>
   <div class="birthday-rain" id="birthdayRain"></div>
