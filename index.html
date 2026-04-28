@@ -384,15 +384,6 @@
       text-transform: uppercase;
     }
 
-    .count-debug {
-      margin-top: 8px;
-      color: #fff3c7;
-      font-size: 12px;
-      font-weight: 900;
-      text-shadow: 0 0 6px black;
-      opacity: .85;
-    }
-
     .count-note {
       color: rgba(255,255,255,.9);
       font-size: 15px;
@@ -1193,7 +1184,6 @@
       </div>
 
       <div class="count-note" id="countNote">Target: April 29 • 00:00 Kyiv time 🇺🇦</div>
-      <div class="count-debug" id="countDebug">Countdown loading...</div>
       <button id="enterButton" onclick="startApp()">Start Birthday Wheel Now</button>
       <br>
       <button class="skip-button" onclick="startApp()">Backup Start / Skip Countdown</button>
@@ -1443,7 +1433,8 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v7";
+    const BIRTHDAY_TARGET_MS = Date.UTC(2026, 3, 28, 21, 0, 0);
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v8";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1573,9 +1564,7 @@
     function playLandingSound() {}
     function playWinSound() {}
 
-    function play(audio) {
-      return;
-    }
+    function play(audio) { return; }
 
     function refillCategoryBag() {
       categoryBag = [];
@@ -1871,9 +1860,7 @@
       updateSaveNote();
     }
 
-    function toggleSound() {
-      alert("Music is disabled for stability tonight.");
-    }
+    function toggleSound() { alert("Music is disabled for stability tonight."); }
 
     function celebrate() {
       const layer = document.getElementById("confettiLayer");
@@ -2025,42 +2012,11 @@
     }
 
     function getKyivNow() {
-      return getKyivParts(new Date());
-    }
-
-    function kyivDateToUtcTimestamp(year, month, day, hour, minute, second) {
-      // Start with an approximate UTC timestamp.
-      const approximate = Date.UTC(year, month - 1, day, hour, minute, second);
-
-      // Find what Kyiv time that UTC instant becomes.
-      const kyivAtApprox = getKyivParts(new Date(approximate));
-      const shownAsUtc = Date.UTC(
-        kyivAtApprox.year,
-        kyivAtApprox.month - 1,
-        kyivAtApprox.day,
-        kyivAtApprox.hour,
-        kyivAtApprox.minute,
-        kyivAtApprox.second
-      );
-
-      // Difference is the Kyiv timezone offset for that date.
-      return approximate - (shownAsUtc - approximate);
-    }
-
-    function getKyivTargetTimestamp() {
-      const now = getKyivNow();
-      let year = now.year;
-
-      // If April 29 already passed in Kyiv this year, use next year.
-      if (now.month > 4 || (now.month === 4 && now.day > 29)) {
-        year += 1;
-      }
-
-      return kyivDateToUtcTimestamp(year, 4, 29, 0, 0, 0);
+      return new Date();
     }
 
     function getKyivTarget() {
-      return new Date(getKyivTargetTimestamp());
+      return new Date(BIRTHDAY_TARGET_MS);
     }
 
     function pad(num) {
@@ -2068,62 +2024,43 @@
     }
 
     function updateCountdown() {
-      try {
-        const nowMs = Date.now();
-        const targetMs = getKyivTargetTimestamp();
-        const diff = targetMs - nowMs;
+      const diff = BIRTHDAY_TARGET_MS - Date.now();
 
-        const kyivNow = getKyivNow();
-        const debug = document.getElementById("countDebug");
-        if (debug) {
-          debug.textContent = `Kyiv now: ${pad(kyivNow.day)}/${pad(kyivNow.month)} ${pad(kyivNow.hour)}:${pad(kyivNow.minute)}:${pad(kyivNow.second)}`;
+      if (diff > 0) {
+        birthdayUnlocked = false;
+
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        const d = document.getElementById("days");
+        const h = document.getElementById("hours");
+        const m = document.getElementById("minutes");
+        const s = document.getElementById("seconds");
+
+        if (d) d.textContent = pad(days);
+        if (h) h.textContent = pad(hours);
+        if (m) m.textContent = pad(minutes);
+        if (s) s.textContent = pad(seconds);
+
+        const note = document.getElementById("countNote");
+        if (note) note.textContent = "Target: April 29 • 00:00 Kyiv time 🇺🇦";
+
+        const splash = document.getElementById("finalCountdownSplash");
+        const finalNumber = document.getElementById("finalCountdownNumber");
+
+        if (splash && finalNumber && days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
+          splash.classList.add("show");
+          finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
+        } else if (splash) {
+          splash.classList.remove("show");
         }
 
-        if (diff > 0) {
-          birthdayUnlocked = false;
-
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-          const minutes = Math.floor((diff / (1000 * 60)) % 60);
-          const seconds = Math.floor((diff / 1000) % 60);
-
-          const d = document.getElementById("days");
-          const h = document.getElementById("hours");
-          const m = document.getElementById("minutes");
-          const s = document.getElementById("seconds");
-
-          if (d) d.textContent = pad(days);
-          if (h) h.textContent = pad(hours);
-          if (m) m.textContent = pad(minutes);
-          if (s) s.textContent = pad(seconds);
-
-          const note = document.getElementById("countNote");
-          if (note) note.textContent = "Target: April 29 • 00:00 Kyiv time 🇺🇦";
-
-          const splash = document.getElementById("finalCountdownSplash");
-          const finalNumber = document.getElementById("finalCountdownNumber");
-
-          if (splash && finalNumber && days === 0 && hours === 0 && minutes === 0 && seconds <= 10) {
-            splash.classList.add("show");
-            finalNumber.textContent = seconds === 0 ? "🎉" : seconds;
-          } else if (splash) {
-            splash.classList.remove("show");
-          }
-
-          return;
-        }
-
-        if (!birthdayUnlocked) unlockBirthdayScreen();
-      } catch (error) {
-        console.error("Countdown error:", error);
-
-        const debug = document.getElementById("countDebug");
-        if (debug) debug.textContent = "Countdown error — use Backup Start if needed.";
-
-        // Do NOT freeze at zero forever. Keep start button working.
-        const btn = document.getElementById("enterButton");
-        if (btn) btn.onclick = startApp;
+        return;
       }
+
+      if (!birthdayUnlocked) unlockBirthdayScreen();
     }
 
     function unlockBirthdayScreen() {
@@ -2132,9 +2069,6 @@
 
       const splash = document.getElementById("finalCountdownSplash");
       if (splash) splash.classList.remove("show");
-
-      const box = document.getElementById("introBox");
-      if (box) box.classList.add("birthday-unlocked");
 
       const tagline = document.getElementById("introTagline");
       if (tagline) tagline.textContent = "Happy Birthday!";
@@ -2158,10 +2092,7 @@
         btn.onclick = startApp;
       }
 
-      try {
-        celebrate();
-        crownDrop();
-      } catch (e) {}
+      try { celebrate(); crownDrop(); } catch(e) {}
     }
 
     function showMidnightFreeze() {
@@ -2173,21 +2104,24 @@
     }
 
     function startApp() {
-      const splash = document.getElementById("finalCountdownSplash");
       const intro = document.getElementById("intro");
+      const splash = document.getElementById("finalCountdownSplash");
 
       if (splash) splash.classList.remove("show");
-      if (intro) intro.style.display = "none";
-
-      try {
-        mode = "category";
-        currentCategory = null;
-        currentWheelItems = categoryItems();
-        if (currentWheelItems && currentWheelItems.length) draw(currentWheelItems);
-        setStepOne();
-      } catch (e) {
-        console.error("Start fallback error:", e);
+      if (intro) {
+        intro.classList.add("hidden");
+        intro.style.display = "none";
       }
+
+      mode = "category";
+      currentCategory = null;
+      currentWheelItems = categoryItems();
+
+      if (currentWheelItems && currentWheelItems.length) {
+        draw(currentWheelItems);
+      }
+
+      setStepOne();
     }
     }
 
@@ -2202,7 +2136,6 @@
         setInterval(updateCountdown, 1000);
       } catch (e) {
         console.error("Init error:", e);
-        // Even if something fails, keep the start button usable.
         const btn = document.getElementById("enterButton");
         if (btn) btn.onclick = startApp;
       }
@@ -2210,8 +2143,6 @@
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", initApp);
-    } else {
-      initApp();
     } else {
       initApp();
     }
