@@ -1433,7 +1433,8 @@
     let audioCtx = null;
 
     const FIXED_BIRTHDAY_DATE_KYIV = "2026-04-29";
-    const SAVE_KEY = "elizabethixBirthdayWheelSave_v6";
+    const BIRTHDAY_TARGET_UTC = "2026-04-28T21:00:00Z";
+    const SAVE_KEY = "elizabethixBirthdayWheelSave_v7";
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -1992,8 +1993,7 @@
     }
 
     function getKyivTarget() {
-      // April 29, 2026 at 00:00 Kyiv time = April 28, 2026 21:00 UTC
-      return new Date("2026-04-28T21:00:00Z");
+      return new Date(BIRTHDAY_TARGET_UTC);
     }
 
     function pad(num) {
@@ -2003,8 +2003,9 @@
     function updateCountdown() {
       const now = new Date();
       const target = getKyivTarget();
-      const diff = target - now;
+      let diff = target.getTime() - now.getTime();
 
+      // If her birthday is still coming, show the live countdown.
       if (diff > 0) {
         birthdayUnlocked = false;
 
@@ -2023,6 +2024,9 @@
         if (m) m.textContent = pad(minutes);
         if (s) s.textContent = pad(seconds);
 
+        const note = document.getElementById("countNote");
+        if (note) note.textContent = "Target: April 29 • 00:00 Kyiv time 🇺🇦";
+
         const splash = document.getElementById("finalCountdownSplash");
         const finalNumber = document.getElementById("finalCountdownNumber");
 
@@ -2036,32 +2040,48 @@
         return;
       }
 
-      if (!birthdayUnlocked) unlockBirthdayScreen();
+      // Birthday time arrived/passed.
+      if (!birthdayUnlocked) {
+        unlockBirthdayScreen();
+      }
     }
 
     function unlockBirthdayScreen() {
       if (birthdayUnlocked) return;
       birthdayUnlocked = true;
-      document.getElementById("finalCountdownSplash").classList.remove("show");
-      showMidnightFreeze();
 
-      setTimeout(() => {
-        const box = document.getElementById("introBox");
-        box.classList.add("birthday-unlocked");
-        document.getElementById("introTagline").textContent = "Happy Birthday!";
-        document.getElementById("introMessage").innerHTML =
-          '<span>It is officially your birthday 💜</span><span>The team prepared this moment for you.</span><span>Now the birthday wheel is unlocked ✨</span>';
-        document.getElementById("countdownWrap").innerHTML =
-          '<div class="count-box" style="grid-column: 1 / -1;"><span class="count-number">🎉</span><span class="count-label">Happy Birthday Elizabethix</span></div>';
-        document.getElementById("countNote").textContent = "From your team: we love you so much 💜";
-        document.getElementById("enterButton").textContent = "Enter the Birthday Wheel 💜";
+      const splash = document.getElementById("finalCountdownSplash");
+      if (splash) splash.classList.remove("show");
+
+      const box = document.getElementById("introBox");
+      if (box) box.classList.add("birthday-unlocked");
+
+      const tagline = document.getElementById("introTagline");
+      if (tagline) tagline.textContent = "Happy Birthday!";
+
+      const msg = document.getElementById("introMessage");
+      if (msg) {
+        msg.innerHTML = '<span>It is officially your birthday 💜</span><span>Tonight is YOUR night ✨</span><span>Your team loves you so much.</span>';
+      }
+
+      const wrap = document.getElementById("countdownWrap");
+      if (wrap) {
+        wrap.innerHTML = '<div class="count-box" style="grid-column: 1 / -1;"><span class="count-number">🎉</span><span class="count-label">Happy Birthday Elizabethix</span></div>';
+      }
+
+      const note = document.getElementById("countNote");
+      if (note) note.textContent = "The birthday wheel is unlocked 🎡";
+
+      const btn = document.getElementById("enterButton");
+      if (btn) {
+        btn.textContent = "Enter the Birthday Wheel 💜";
+        btn.onclick = startApp;
+      }
+
+      try {
         celebrate();
         crownDrop();
-        play(winSound);
-        if (soundOn) {
-          bgMusic.play().catch(() => {});
-        }
-      }, 1050);
+      } catch (e) {}
     }
 
     function showMidnightFreeze() {
@@ -2075,24 +2095,43 @@
     function startApp() {
       const splash = document.getElementById("finalCountdownSplash");
       const intro = document.getElementById("intro");
+
       if (splash) splash.classList.remove("show");
-      if (intro) intro.classList.add("hidden");
-      celebrate();
+      if (intro) intro.style.display = "none";
+
+      try {
+        mode = "category";
+        currentCategory = null;
+        currentWheelItems = categoryItems();
+        if (currentWheelItems && currentWheelItems.length) draw(currentWheelItems);
+        setStepOne();
+      } catch (e) {
+        console.error("Start fallback error:", e);
+      }
     }
     }
 
     function initApp() {
-      if (typeof createBirthdayRain === "function") createBirthdayRain();
-      if (typeof createSparkles === "function") createSparkles();
-      if (typeof loadGame === "function") loadGame();
-      if (typeof updateCounters === "function") updateCounters();
-      if (typeof draw === "function") draw(currentWheelItems);
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
+      try {
+        if (typeof createBirthdayRain === "function") createBirthdayRain();
+        if (typeof createSparkles === "function") createSparkles();
+        if (typeof loadGame === "function") loadGame();
+        if (typeof updateCounters === "function") updateCounters();
+        if (typeof draw === "function") draw(currentWheelItems);
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+      } catch (e) {
+        console.error("Init error:", e);
+        // Even if something fails, keep the start button usable.
+        const btn = document.getElementById("enterButton");
+        if (btn) btn.onclick = startApp;
+      }
     }
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", initApp);
+    } else {
+      initApp();
     } else {
       initApp();
     }
