@@ -604,6 +604,7 @@
       padding: 22px;
       display: grid;
       place-items: center;
+      overflow: hidden;
       background:
         radial-gradient(circle at 50% 50%, rgba(255, 243, 255, .18), transparent 38%),
         radial-gradient(circle at 50% 50%, rgba(255, 66, 214, .16), transparent 55%),
@@ -1022,42 +1023,6 @@
       animation-delay: -1.8s;
     }
 
-    .birthday-orbit {
-      position: fixed;
-      z-index: 1;
-      pointer-events: none;
-      border-radius: 999px;
-      opacity: .34;
-      filter: blur(.4px) drop-shadow(0 0 30px rgba(255, 216, 106, .62));
-      animation: birthdayOrbitFloat 7s ease-in-out infinite;
-    }
-
-    .birthday-orbit.one {
-      width: 170px;
-      height: 170px;
-      left: 8vw;
-      top: 28vh;
-      background: radial-gradient(circle, rgba(255, 216, 106, .62), rgba(255, 66, 214, .12), transparent 68%);
-    }
-
-    .birthday-orbit.two {
-      width: 230px;
-      height: 230px;
-      right: 7vw;
-      top: 33vh;
-      background: radial-gradient(circle, rgba(255, 143, 224, .55), rgba(255, 216, 106, .10), transparent 68%);
-      animation-delay: -2.6s;
-    }
-
-    .birthday-orbit.three {
-      width: 130px;
-      height: 130px;
-      left: 20vw;
-      bottom: 14vh;
-      background: radial-gradient(circle, rgba(176, 144, 255, .52), rgba(255, 66, 214, .12), transparent 70%);
-      animation-delay: -4.7s;
-    }
-
     .top-title::after {
       content: "🎂 Made with love by your team 💜";
       display: inline-block;
@@ -1153,11 +1118,6 @@
       50% { transform: translateY(-20px) rotate(4deg) scale(1.04); }
     }
 
-    @keyframes birthdayOrbitFloat {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-34px) scale(1.08); }
-    }
-
     @keyframes birthdayButtonPulse {
       from {
         box-shadow:
@@ -1175,9 +1135,6 @@
 
     @media (max-width: 900px) {
       .birthday-big-corner,
-      .birthday-orbit {
-        opacity: .18;
-      }
 
       .birthday-rain span {
         opacity: .26;
@@ -1204,9 +1161,6 @@
 <body>
   <div class="birthday-bg"></div>
   <div class="birthday-mode-layer"></div>
-  <div class="birthday-orbit one"></div>
-  <div class="birthday-orbit two"></div>
-  <div class="birthday-orbit three"></div>
   <div class="birthday-big-corner left">🎂</div>
   <div class="birthday-big-corner right">🎁</div>
   <div class="birthday-rain" id="birthdayRain"></div>
@@ -1454,16 +1408,16 @@
       "🎁 WILD CARD: Double Spin — Spin again 😈",
       "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
       "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: Force Dare — Skip the category… Elizabethix must do a DARE 🔥",
-      "🎁 WILD CARD: Force Truth — Skip the category… Elizabethix must answer a TRUTH 👀",
+      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
+      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
       "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈",
       "🎁 WILD CARD: Reverse Question — Elizabethix asks the MVP anything 👀",
       "🎁 WILD CARD: Reverse Dare — Elizabethix gives the MVP a dare 😈",
       "🎁 WILD CARD: Double Spin — Spin again 😈",
       "🎁 WILD CARD: Lucky Save — You’re safe this round… lucky you 🍀",
       "🎁 WILD CARD: Double Trouble — Do TWO actions: this wild card + one more spin 💥",
-      "🎁 WILD CARD: Force Dare — Skip the category… Elizabethix must do a DARE 🔥",
-      "🎁 WILD CARD: Force Truth — Skip the category… Elizabethix must answer a TRUTH 👀",
+      "🎁 WILD CARD: FORCE_DARE — Elizabethix must do a random DARE now 🔥",
+      "🎁 WILD CARD: FORCE_TRUTH — Elizabethix must answer a random TRUTH now 👀",
       "🎁 WILD CARD: Power Move — Elizabethix decides what happens this round 😈"
 ];
 
@@ -1682,17 +1636,55 @@
       return wildcards[Math.floor(Math.random() * wildcards.length)];
     }
 
+    function pullRandomPromptFromCategory(category) {
+      const arr = data[category];
+
+      if (!arr || !arr.length) {
+        return null;
+      }
+
+      const itemIndex = Math.floor(Math.random() * arr.length);
+      const text = arr.splice(itemIndex, 1)[0];
+
+      updateCounters();
+      saveGame();
+
+      return text;
+    }
+
     function triggerWildCard(category) {
       lastResultWasWild = true;
       wildCooldown = 2;
 
       const wildText = getWildCard();
-      setResult(category, wildText);
+
+      let finalText = wildText;
+      let forcedType = null;
+
+      if (wildText.includes("FORCE_DARE")) {
+        forcedType = "Dare";
+        const forcedPrompt = pullRandomPromptFromCategory("Dare");
+        finalText = forcedPrompt
+          ? `🎁 WILD CARD: FORCE DARE 🔥\n\n${forcedPrompt}`
+          : "🎁 WILD CARD: FORCE DARE 🔥\n\nNo dares left, so spin again.";
+      }
+
+      if (wildText.includes("FORCE_TRUTH")) {
+        forcedType = "Truth";
+        const forcedPrompt = pullRandomPromptFromCategory("Truth");
+        finalText = forcedPrompt
+          ? `🎁 WILD CARD: FORCE TRUTH 👀\n\n${forcedPrompt}`
+          : "🎁 WILD CARD: FORCE TRUTH 👀\n\nNo truths left, so spin again.";
+      }
+
+      const displayType = forcedType || category;
+
+      setResult(displayType, finalText);
 
       if (typeof flashScreen === "function") flashScreen();
-      categoryGlow("Pickup");
+      categoryGlow(forcedType || "Pickup");
       crownDrop();
-      emojiBurst("Pickup");
+      emojiBurst(forcedType || "Pickup");
       celebrate();
 
       const popup = document.getElementById("popup");
@@ -1700,12 +1692,10 @@
       document.body.classList.add("wild-shake");
       setTimeout(() => document.body.classList.remove("wild-shake"), 500);
 
-      openPopup("🎁 WILD CARD", `${playerName()} unlocked a surprise:`, wildText, true);
+      openPopup("🎁 WILD CARD", `${playerName()} unlocked a surprise:`, finalText, true);
 
-      // Wild card does not remove a normal prompt from the list.
-      if (typeof saveGame === "function") saveGame();
+      if (!forcedType && typeof saveGame === "function") saveGame();
     }
-
 
     function revealPrompt() {
       if (!currentCategory) return;
